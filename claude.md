@@ -585,7 +585,14 @@ export type CreateBookingDto = z.infer<typeof CreateBookingSchema>;
 - Variables/Functions: camelCase (e.g., `calculateQuote`, `bookingData`)
 - Constants: SCREAMING_SNAKE_CASE (e.g., `MAX_PASSENGERS`, `DEFAULT_BIDDING_WINDOW`)
 - React Components: PascalCase (e.g., `BookingForm`, `VehicleCard`)
-- Files: kebab-case (e.g., `booking-form.tsx`, `calculate-quote.ts`)
+
+**File Naming Conventions:**
+- ✅ **React Component Files**: PascalCase (e.g., `BookingForm.tsx`, `CtaSection.tsx`, `Header.tsx`)
+- ✅ **Route Folders** (Next.js app directory): kebab-case (e.g., `app/operators/`, `app/about/`)
+- ✅ **Utility/Helper Files**: camelCase (e.g., `utils.ts`, `constants.ts`)
+- ❌ **Avoid**: kebab-case for component files (e.g., `booking-form.tsx` ❌), camelCase for components (e.g., `bookingForm.tsx` ❌), snake_case (e.g., `booking_form.tsx` ❌)
+
+**Rationale**: PascalCase for component files ensures consistency between the component name and the filename, making imports clearer and preventing case-sensitivity issues across different operating systems.
 
 ### Database Field Naming
 
@@ -834,16 +841,25 @@ FRONTEND_URL=http://localhost:3000
 
 ### Tailwind CSS Configuration Requirements
 
-**Centralized Theme in `tailwind.config.ts`:**
-- All colors defined in `theme.extend.colors` - NO hardcoded hex values in components
+**Using Tailwind CSS 4 with `@theme inline` in `globals.css`:**
+- All colors defined in `@theme inline` block - NO hardcoded hex values in components
 - Define color palette with semantic names: primary, secondary, accent, neutral, success, warning, error
 - Each color should have shades: 50, 100, 200, 300, 400, 500, 600, 700, 800, 900
-- All spacing values in `theme.extend.spacing` if custom values needed
-- Typography scale in `theme.extend.fontSize` with line heights
-- Border radius values in `theme.extend.borderRadius`
-- Box shadows in `theme.extend.boxShadow`
-- Breakpoints in `theme.extend.screens` if custom breakpoints needed
-- Easy theme switching: changing colors in config should update entire app
+- All spacing values in `@theme inline` if custom values needed
+- Typography scale (font families, sizes, line heights) in `@theme inline`
+- Border radius values in `@theme inline`
+- Box shadows in `@theme inline`
+- Breakpoints in `@theme inline`
+- Easy theme switching: changing values in `@theme inline` should update entire app
+
+**CRITICAL: Global CSS Rules:**
+- ❌ **NEVER add global element styles** (`*`, `html`, `body`, `a`, `button`, etc.) that override Tailwind defaults
+- ❌ **NEVER add global resets** like `margin: 0`, `padding: 0` on universal selector
+- ❌ **NEVER add custom utility classes** in global CSS (`.container`, `.btn`, etc.) - use Tailwind utilities or create components
+- ❌ **NEVER add global styles** that affect spacing, display, positioning, or any CSS properties Tailwind controls
+- ✅ **ONLY use `globals.css` for**: `@import "tailwindcss"` and `@theme inline` configuration block
+- ✅ **Component-specific styles**: Create styled components or use Tailwind utilities in className
+- ✅ **Follow Tailwind CSS 4 best practices**: Keep global CSS minimal, let Tailwind handle all styling
 
 ### Responsive Design Requirements
 

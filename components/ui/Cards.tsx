@@ -60,28 +60,28 @@ export function StepCard({ step, isLast = false }: StepCardProps) {
     <div className="group relative flex">
       {/* Connecting Arrow (Desktop) */}
       {!isLast && (
-        <div className="absolute -right-4 top-12 hidden h-0.5 w-8 bg-gradient-to-r from-accent-400 to-transparent lg:block" />
+        <div className="absolute -right-4 top-8 hidden h-0.5 w-8 bg-gradient-to-r from-accent-400 to-transparent lg:block" />
       )}
 
       {/* Card */}
-      <div className="relative flex w-full flex-col overflow-hidden rounded-2xl bg-white/10 p-6 shadow-xl ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/15">
+      <div className="relative flex w-full flex-col overflow-hidden rounded-2xl bg-white/10 p-4 shadow-lg ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/15 sm:p-5">
         {/* Gradient orb */}
         <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-accent-400/20 opacity-75 blur-2xl transition-opacity group-hover:opacity-100" />
 
-        <div className="relative flex flex-col">
-          {/* Number Badge */}
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent-500 shadow-lg">
-            <span className="text-xl font-bold text-white">{step.number}</span>
-          </div>
+        {/* Number Badge - Top Right */}
+        <div className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent-500 shadow-lg">
+          <span className="text-xs font-bold text-white">{step.number}</span>
+        </div>
 
+        <div className="relative flex flex-col">
           {/* Icon */}
-          <div className="mt-4 h-10 w-10 text-accent-300">{getIcon(step.icon)}</div>
+          <div className="h-10 w-10 text-accent-300">{getIcon(step.icon)}</div>
 
           {/* Title */}
-          <h3 className="mt-4 text-xl font-bold text-white">{step.title}</h3>
+          <h3 className="mt-3 text-lg font-bold text-white">{step.title}</h3>
 
           {/* Description */}
-          <p className="mt-3 text-justify text-sm leading-relaxed text-white/80">{step.description}</p>
+          <p className="mt-2 text-justify text-sm leading-relaxed text-white/80">{step.description}</p>
         </div>
       </div>
     </div>
@@ -104,35 +104,38 @@ export function TestimonialCard({ testimonial }: TestimonialCardProps) {
         <span className="text-primary-600">{getIcon('quote-mark')}</span>
       </div>
 
-      {/* Rating Stars */}
-      <div className="flex gap-1">
-        {[...Array(testimonial.rating)].map((_, i) => (
-          <span key={i} className="h-5 w-5 text-accent-500">
-            {getIcon('star-filled')}
-          </span>
-        ))}
+      {/* Author Info - Top (Google Review Style) */}
+      <div className="flex items-center gap-3">
+        {/* Avatar */}
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-secondary-900 text-2xl shadow-md">
+          {testimonial.image}
+        </div>
+
+        {/* Name */}
+        <div className="font-semibold text-neutral-900">{testimonial.name}</div>
+      </div>
+
+      {/* Rating Stars + Role + Location - Second Row */}
+      <div className="mt-3 flex items-center gap-2">
+        {/* Stars */}
+        <div className="flex gap-0.5">
+          {[...Array(testimonial.rating)].map((_, i) => (
+            <span key={i} className="h-4 w-4 text-accent-500">
+              {getIcon('star-filled')}
+            </span>
+          ))}
+        </div>
+
+        {/* Role and Location */}
+        <div className="text-xs text-neutral-600">
+          {testimonial.role} • {testimonial.location}
+        </div>
       </div>
 
       {/* Quote */}
       <p className="relative mt-4 text-justify text-sm leading-relaxed text-neutral-700 sm:text-base">
         &ldquo;{testimonial.quote}&rdquo;
       </p>
-
-      {/* Author Info */}
-      <div className="mt-6 flex items-center gap-4">
-        {/* Avatar */}
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-secondary-900 text-2xl shadow-md">
-          {testimonial.image}
-        </div>
-
-        {/* Details */}
-        <div>
-          <div className="font-semibold text-neutral-900">{testimonial.name}</div>
-          <div className="text-sm text-neutral-600">
-            {testimonial.role} • {testimonial.location}
-          </div>
-        </div>
-      </div>
 
       {/* Hover Effect Border */}
       <div className="absolute inset-0 rounded-lg border-2 border-transparent transition-colors group-hover:border-primary-200" />

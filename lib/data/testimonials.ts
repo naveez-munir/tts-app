@@ -11,7 +11,7 @@ export const TESTIMONIALS: Testimonial[] = [
     rating: 5,
     image: '👩‍💼',
     quote:
-      "TransferHub made my airport transfer so easy! The driver was professional, punctual, and the price was very competitive. I'll definitely use them again for my business trips.",
+      "Total Travel Solution made my airport transfer so easy! The driver was professional, punctual, and the price was very competitive. I'll definitely use them again for my business trips.",
   },
   {
     name: 'Michael Chen',
@@ -29,7 +29,7 @@ export const TESTIMONIALS: Testimonial[] = [
     rating: 5,
     image: '✈️',
     quote:
-      'I travel frequently for work and TransferHub has become my go-to service. Reliable, affordable, and always on time. The instant quotes are a game-changer!',
+      'I travel frequently for work and Total Travel Solution has become my go-to service. Reliable, affordable, and always on time. The instant quotes are a game-changer!',
   },
   {
     name: 'David Thompson',
@@ -38,7 +38,7 @@ export const TESTIMONIALS: Testimonial[] = [
     rating: 5,
     image: '🧳',
     quote:
-      'Had an early morning flight and was worried about finding reliable transport. TransferHub delivered perfectly - driver arrived 10 minutes early and got me to the airport with time to spare.',
+      'Had an early morning flight and was worried about finding reliable transport. Total Travel Solution delivered perfectly - driver arrived 10 minutes early and got me to the airport with time to spare.',
   },
   {
     name: 'Lisa Martinez',
@@ -56,7 +56,7 @@ export const TESTIMONIALS: Testimonial[] = [
     rating: 5,
     image: '🌍',
     quote:
-      'Coming from abroad, I needed a reliable transfer service. TransferHub exceeded my expectations - clear communication, professional driver, and smooth journey. Highly recommend!',
+      'Coming from abroad, I needed a reliable transfer service. Total Travel Solution exceeded my expectations - clear communication, professional driver, and smooth journey. Highly recommend!',
   },
 ];
 

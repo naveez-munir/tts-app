@@ -1,62 +1,70 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { authApi } from '@/lib/api';
+import { LoginSchema } from '@/lib/types';
 
-/**
- * Sign In Form Component
- * Handles user authentication with email and password
- */
 export function SignInForm() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false,
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrors({});
 
-    // Basic validation
-    const newErrors: { email?: string; password?: string } = {};
-    
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
+    try {
+      const validatedData = LoginSchema.parse({
+        email: formData.email,
+        password: formData.password,
+      });
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
+      const { user } = await authApi.login(validatedData);
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      if (user.role === 'CUSTOMER') {
+        router.push('/dashboard');
+      } else if (user.role === 'OPERATOR') {
+        router.push('/operator/dashboard');
+      } else if (user.role === 'ADMIN') {
+        router.push('/admin');
+      }
+    } catch (error: any) {
+      if (error.issues) {
+        const fieldErrors: any = {};
+        error.issues.forEach((issue: any) => {
+          const field = issue.path[0];
+          fieldErrors[field] = issue.message;
+        });
+        setErrors(fieldErrors);
+      } else if (error.error) {
+        setErrors({ general: error.error.message || 'Invalid email or password' });
+      } else {
+        setErrors({ general: 'An unexpected error occurred. Please try again.' });
+      }
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    // TODO: Implement actual authentication logic
-    setTimeout(() => {
-      console.log('Sign in:', formData);
-      setIsLoading(false);
-      // Redirect to dashboard after successful login
-      // window.location.href = '/dashboard';
-    }, 1500);
   };
 
   return (
     <div className="w-full max-w-md">
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Email Input */}
+        {errors.general && (
+          <div className="rounded-lg bg-error-50 p-4 text-sm text-error-700">
+            {errors.general}
+          </div>
+        )}
+
         <Input
           type="email"
           label="Email Address"
@@ -68,7 +76,6 @@ export function SignInForm() {
           required
         />
 
-        {/* Password Input */}
         <Input
           type="password"
           label="Password"
@@ -112,27 +119,42 @@ export function SignInForm() {
           {isLoading ? 'Signing in...' : 'Sign In'}
         </Button>
 
-        {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-neutral-300" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-4 text-neutral-500">Don't have an account?</span>
+            <span className="bg-white px-4 text-neutral-500">New here?</span>
           </div>
         </div>
 
-        {/* Sign Up Link */}
-        <div className="text-center">
+        <div className="space-y-3 text-center text-sm">
+          <p className="text-neutral-600">
+            <strong>Customers:</strong> Book a journey to create your account automatically
+          </p>
           <Link
             href="/quote"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-primary-700 hover:underline"
+            className="inline-flex items-center gap-2 font-semibold text-primary-600 hover:text-primary-700 hover:underline"
           >
-            Get a quote and create account
+            Get a quote
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </Link>
+          <div className="pt-2">
+            <p className="text-neutral-600">
+              <strong>Transport Operators:</strong> Join our platform
+            </p>
+            <Link
+              href="/operators/register"
+              className="inline-flex items-center gap-2 font-semibold text-accent-600 hover:text-accent-700 hover:underline"
+            >
+              Register as operator
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </form>
     </div>

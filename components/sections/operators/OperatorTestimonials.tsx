@@ -22,7 +22,7 @@ export function OperatorTestimonials({ testimonials }: OperatorTestimonialsProps
             What Our Operators Say
           </h2>
           <p className="mt-4 text-lg text-neutral-600 sm:text-xl">
-            Join hundreds of satisfied operators growing their business with TransferHub
+            Join hundreds of satisfied operators growing their business with Total Travel Solution
           </p>
         </div>
 

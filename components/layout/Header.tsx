@@ -7,11 +7,22 @@ import { NAV_LINKS, CTA_LINKS } from '@/lib/constants';
 import { Logo } from './Logo';
 import { NavLink } from '@/components/ui/NavLink';
 
-export function Header() {
+interface HeaderProps {
+  /**
+   * Header variant:
+   * - 'transparent': Transparent header with white text (for dark hero backgrounds)
+   * - 'solid': Always solid white header with dark text (for light page backgrounds)
+   */
+  variant?: 'transparent' | 'solid';
+}
+
+export function Header({ variant = 'transparent' }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Handle scroll effect for header
+  // For solid variant, always show as "scrolled" (dark text, white bg)
+  const showSolid = variant === 'solid' || scrolled || mobileMenuOpen;
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -20,29 +31,36 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <header
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        scrolled
-          ? 'bg-white shadow-md'
-          : 'bg-transparent'
+        showSolid ? 'bg-white shadow-md' : 'bg-transparent'
       )}
     >
-      {/* Gradient Border Bottom - only show when scrolled */}
-      {scrolled && (
+      {showSolid && (
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-500" />
       )}
 
       <nav className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between md:h-20">
           {/* Logo */}
-          <Logo scrolled={scrolled} />
+          <Logo scrolled={showSolid} />
 
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-2 lg:flex">
             {NAV_LINKS.map((link) => (
-              <NavLink key={link.href} href={link.href} scrolled={scrolled}>
+              <NavLink key={link.href} href={link.href} scrolled={showSolid}>
                 {link.label}
               </NavLink>
             ))}
@@ -54,7 +72,7 @@ export function Header() {
               href="/sign-in"
               className={cn(
                 'rounded-xl px-6 py-3 text-base font-semibold transition-all duration-200',
-                scrolled
+                showSolid
                   ? 'text-neutral-800 hover:text-primary-600'
                   : 'text-white hover:text-white/80'
               )}
@@ -78,13 +96,12 @@ export function Header() {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="lg:hidden">
             <button
               type="button"
               className={cn(
                 'relative inline-flex h-11 w-11 items-center justify-center rounded-lg transition-all duration-200',
-                scrolled
+                showSolid
                   ? 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
                   : 'bg-white/10 text-white hover:bg-white/20'
               )}
@@ -116,38 +133,36 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div
-            className={cn(
-              'border-t py-5 lg:hidden',
-              scrolled ? 'border-neutral-200 bg-white' : 'border-neutral-200 bg-white'
-            )}
-          >
-            <div className="flex flex-col gap-1.5">
-              {NAV_LINKS.map((link) => (
-                <NavLink
-                  key={link.href}
-                  href={link.href}
-                  scrolled={scrolled}
-                  mobile
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </NavLink>
-              ))}
+          <div className="fixed inset-0 top-16 z-40 bg-white lg:hidden">
+            <div className="flex h-[calc(100vh-64px)] flex-col px-4 py-8 sm:px-6">
+              <div className="flex flex-col gap-2">
+                {NAV_LINKS.map((link) => (
+                  <NavLink
+                    key={link.href}
+                    href={link.href}
+                    scrolled={true}
+                    mobile
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </NavLink>
+                ))}
+              </div>
 
-              <div className="mt-4 flex flex-col gap-3 border-t border-neutral-200 pt-4">
+              <div className="flex-1" />
+
+              <div className="flex flex-col gap-3">
                 <Link
                   href="/sign-in"
-                  className="rounded-xl px-4 py-3 text-center text-base font-semibold text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:text-primary-600"
+                  className="rounded-xl border-2 border-primary-600 px-6 py-3 text-center text-base font-semibold text-primary-600 transition-all duration-200 hover:bg-primary-50"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link
                   href={CTA_LINKS.GET_QUOTE}
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3.5 text-center text-base font-bold text-white shadow-lg shadow-accent-500/30 transition-all duration-300 hover:bg-accent-600 hover:shadow-xl hover:shadow-accent-600/40"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 text-center text-base font-bold text-white shadow-lg shadow-accent-500/30 transition-all duration-300 hover:bg-accent-600 hover:shadow-xl hover:shadow-accent-600/40"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Get Quote

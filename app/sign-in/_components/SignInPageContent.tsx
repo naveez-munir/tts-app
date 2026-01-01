@@ -10,18 +10,14 @@ import { AUTH_PAGE_DATA } from '@/lib/data/auth.data';
 export function SignInPageContent() {
   return (
     <>
-      <main className="relative flex h-screen items-center overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-900">
+      <main className="relative flex h-screen flex-col bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-900 lg:justify-center">
         {/* Animated Background Pattern */}
         <div className="absolute inset-0 opacity-[0.05]">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff1a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff1a_1px,transparent_1px)] bg-[size:4rem_4rem]" />
         </div>
 
-        {/* Gradient Orbs */}
-        <div className="absolute right-0 top-0 h-[600px] w-[600px] -translate-y-1/2 translate-x-1/2 animate-pulse rounded-full bg-gradient-to-br from-accent-400/30 to-primary-500/20 blur-3xl" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-0 left-0 h-[600px] w-[600px] translate-y-1/2 -translate-x-1/2 animate-pulse rounded-full bg-gradient-to-tr from-secondary-400/30 to-primary-500/20 blur-3xl" style={{ animationDuration: '4s', animationDelay: '2s' }} />
-
         {/* Content Container */}
-        <div className="container relative mx-auto w-full px-4 sm:px-6 lg:px-8">
+        <div className="container relative mx-auto w-full overflow-y-auto px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-0">
           <div className="mx-auto max-w-5xl">
             {/* Back to Home Link */}
             <div className="mb-6 lg:mb-8">
@@ -56,7 +52,7 @@ export function SignInPageContent() {
               </div>
 
               {/* Right Column - Benefits */}
-              <div className="flex flex-col justify-center">
+              <div className="flex flex-col justify-end">
                 <div className="mb-6">
                   <h2 className="text-xl font-black text-white sm:text-2xl lg:text-2xl">
                     Why Sign In?

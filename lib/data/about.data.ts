@@ -22,7 +22,7 @@ export const aboutPageData: AboutPageData = {
       alt: 'Modern airport terminal',
     },
     paragraphs: [
-      'TransferHub was founded with a simple mission: to make airport transfers transparent, affordable, and stress-free for everyone. We recognized that travelers deserved better than opaque pricing and unreliable service.',
+      'Total Travel Solution was founded with a simple mission: to make airport transfers transparent, affordable, and stress-free for everyone. We recognized that travelers deserved better than opaque pricing and unreliable service.',
       "By creating a marketplace that connects customers directly with vetted transport operators, we've built a platform where competition drives quality and affordability. Our technology ensures you always get the best service at the best price.",
       "Today, we're proud to serve thousands of customers across the UK, working with hundreds of professional operators who share our commitment to excellence.",
     ],

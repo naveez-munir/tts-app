@@ -57,7 +57,7 @@ export default function AboutPageContent() {
 
           {/* Why Choose Us Section */}
           <WhyChooseSection
-            title="Why Choose TransferHub?"
+            title="Why Choose Total Travel Solution?"
             subtitle="We're more than just a booking platform"
             reasons={aboutPageData.whyChooseUs}
             columns={3}

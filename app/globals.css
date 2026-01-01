@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
 /* ============================================
+   SMOOTH SCROLL BEHAVIOR
+   ============================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ============================================
    TAILWIND CSS 4 CONFIGURATION
    Mobile-First Responsive Design
    Brand: Trust & Reliability (Blue + Navy + Amber)

@@ -1,39 +1,73 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import { AddressAutocomplete, AddressValue } from '@/components/ui/AddressAutocomplete';
 import {
   VEHICLE_TYPES,
   SERVICE_TYPES,
   PASSENGER_OPTIONS,
   LUGGAGE_OPTIONS,
 } from '@/lib/data/quote.data';
+import { calculateSingleQuote, calculateReturnQuote } from '@/lib/api/quote.api';
+import { VehicleType } from '@/lib/types/enums';
+import type { SingleJourneyQuote, ReturnJourneyQuote } from '@/lib/types/quote.types';
+
+interface LocationData {
+  text: string;
+  address: string;
+  postcode: string | null;
+  lat: number | null;
+  lng: number | null;
+  placeId: string;
+}
+
+const emptyLocation: LocationData = {
+  text: '',
+  address: '',
+  postcode: null,
+  lat: null,
+  lng: null,
+  placeId: '',
+};
 
 /**
  * Quote Form Section Component
  * Multi-step form for getting a transfer quote
  */
 export function QuoteFormSection() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Journey type
+  const [journeyType, setJourneyType] = useState<'one-way' | 'return'>('one-way');
+
+  // Location data (with geocoding info)
+  const [pickup, setPickup] = useState<LocationData>(emptyLocation);
+  const [dropoff, setDropoff] = useState<LocationData>(emptyLocation);
+
+  // Form fields
   const [formData, setFormData] = useState({
-    // Step 1: Journey Details
     serviceType: 'AIRPORT_PICKUP',
-    pickupLocation: '',
-    dropoffLocation: '',
-    pickupDate: '',
-    pickupTime: '',
+    pickupDatetime: '',
+    returnDatetime: '',
     flightNumber: '',
-    
-    // Step 2: Passenger Info
     passengers: '1',
     luggage: '2',
-    
-    // Step 3: Vehicle Selection
     vehicleType: 'SALOON',
-    
-    // Step 4: Contact Details
+    // Special requirements
+    childSeats: '0',
+    wheelchairAccess: false,
+    pets: false,
+    meetAndGreet: false,
+    specialNotes: '',
+    // Contact Details
     firstName: '',
     lastName: '',
     email: '',
@@ -41,17 +75,114 @@ export function QuoteFormSection() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-
   const totalSteps = 4;
+
+  // Pre-fill form from URL params (coming from hero form)
+  useEffect(() => {
+    const journeyTypeParam = searchParams.get('journeyType');
+    if (journeyTypeParam === 'return') {
+      setJourneyType('return');
+    }
+
+    const pickupAddress = searchParams.get('pickupAddress');
+    const pickupLat = searchParams.get('pickupLat');
+    const pickupLng = searchParams.get('pickupLng');
+    const pickupPostcode = searchParams.get('pickupPostcode');
+    const pickupPlaceId = searchParams.get('pickupPlaceId');
+
+    if (pickupAddress && pickupLat && pickupLng) {
+      setPickup({
+        text: pickupAddress,
+        address: pickupAddress,
+        postcode: pickupPostcode || null,
+        lat: parseFloat(pickupLat),
+        lng: parseFloat(pickupLng),
+        placeId: pickupPlaceId || '',
+      });
+    }
+
+    const dropoffAddress = searchParams.get('dropoffAddress');
+    const dropoffLat = searchParams.get('dropoffLat');
+    const dropoffLng = searchParams.get('dropoffLng');
+    const dropoffPostcode = searchParams.get('dropoffPostcode');
+    const dropoffPlaceId = searchParams.get('dropoffPlaceId');
+
+    if (dropoffAddress && dropoffLat && dropoffLng) {
+      setDropoff({
+        text: dropoffAddress,
+        address: dropoffAddress,
+        postcode: dropoffPostcode || null,
+        lat: parseFloat(dropoffLat),
+        lng: parseFloat(dropoffLng),
+        placeId: dropoffPlaceId || '',
+      });
+    }
+
+    const pickupDatetime = searchParams.get('pickupDatetime');
+    const returnDatetime = searchParams.get('returnDatetime');
+    const vehicleType = searchParams.get('vehicleType');
+
+    setFormData((prev) => ({
+      ...prev,
+      pickupDatetime: pickupDatetime || '',
+      returnDatetime: returnDatetime || '',
+      vehicleType: vehicleType || 'SALOON',
+    }));
+  }, [searchParams]);
+
+  const handlePickupSelect = (address: AddressValue) => {
+    setPickup({
+      text: address.address,
+      address: address.address,
+      postcode: address.postcode,
+      lat: address.lat,
+      lng: address.lng,
+      placeId: address.placeId,
+    });
+    setErrors((prev) => ({ ...prev, pickup: '' }));
+  };
+
+  const handleDropoffSelect = (address: AddressValue) => {
+    setDropoff({
+      text: address.address,
+      address: address.address,
+      postcode: address.postcode,
+      lat: address.lat,
+      lng: address.lng,
+      placeId: address.placeId,
+    });
+    setErrors((prev) => ({ ...prev, dropoff: '' }));
+  };
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (step === 1) {
-      if (!formData.pickupLocation) newErrors.pickupLocation = 'Pickup location is required';
-      if (!formData.dropoffLocation) newErrors.dropoffLocation = 'Drop-off location is required';
-      if (!formData.pickupDate) newErrors.pickupDate = 'Pickup date is required';
-      if (!formData.pickupTime) newErrors.pickupTime = 'Pickup time is required';
+      if (!pickup.lat || !pickup.lng) {
+        newErrors.pickup = 'Please select a pickup location';
+      }
+      if (!dropoff.lat || !dropoff.lng) {
+        newErrors.dropoff = 'Please select a drop-off location';
+      }
+      if (!formData.pickupDatetime) {
+        newErrors.pickupDatetime = 'Pickup date & time is required';
+      } else {
+        const pickupDate = new Date(formData.pickupDatetime);
+        if (pickupDate <= new Date()) {
+          newErrors.pickupDatetime = 'Pickup must be in the future';
+        }
+      }
+      if (journeyType === 'return') {
+        if (!formData.returnDatetime) {
+          newErrors.returnDatetime = 'Return date & time is required';
+        } else {
+          const returnDate = new Date(formData.returnDatetime);
+          const pickupDate = new Date(formData.pickupDatetime);
+          if (returnDate <= pickupDate) {
+            newErrors.returnDatetime = 'Return must be after pickup';
+          }
+        }
+      }
     }
 
     if (step === 4) {
@@ -76,11 +207,106 @@ export function QuoteFormSection() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateStep(currentStep)) {
-      // TODO: Submit form and calculate quote
-      console.log('Form submitted:', formData);
+    if (!validateStep(currentStep)) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const vehicleType = formData.vehicleType as VehicleType;
+      const pickupDatetime = new Date(formData.pickupDatetime).toISOString();
+
+      let quoteResult: SingleJourneyQuote | ReturnJourneyQuote;
+
+      if (journeyType === 'one-way') {
+        // Single journey quote
+        quoteResult = await calculateSingleQuote({
+          pickupLat: pickup.lat!,
+          pickupLng: pickup.lng!,
+          dropoffLat: dropoff.lat!,
+          dropoffLng: dropoff.lng!,
+          vehicleType,
+          pickupDatetime,
+          meetAndGreet: formData.meetAndGreet,
+        });
+      } else {
+        // Return journey quote
+        const returnDatetime = new Date(formData.returnDatetime).toISOString();
+        quoteResult = await calculateReturnQuote({
+          outbound: {
+            pickupLat: pickup.lat!,
+            pickupLng: pickup.lng!,
+            dropoffLat: dropoff.lat!,
+            dropoffLng: dropoff.lng!,
+            vehicleType,
+            pickupDatetime,
+            meetAndGreet: formData.meetAndGreet,
+          },
+          returnJourney: {
+            // Swap pickup and dropoff for return
+            pickupLat: dropoff.lat!,
+            pickupLng: dropoff.lng!,
+            dropoffLat: pickup.lat!,
+            dropoffLng: pickup.lng!,
+            vehicleType,
+            pickupDatetime: returnDatetime,
+            meetAndGreet: false,
+          },
+        });
+      }
+
+      // Build complete booking data to store in sessionStorage
+      const bookingData = {
+        journeyType,
+        pickup: {
+          address: pickup.address,
+          postcode: pickup.postcode,
+          lat: pickup.lat,
+          lng: pickup.lng,
+        },
+        dropoff: {
+          address: dropoff.address,
+          postcode: dropoff.postcode,
+          lat: dropoff.lat,
+          lng: dropoff.lng,
+        },
+        serviceType: formData.serviceType,
+        pickupDatetime: formData.pickupDatetime,
+        returnDatetime: formData.returnDatetime,
+        flightNumber: formData.flightNumber,
+        passengers: parseInt(formData.passengers),
+        luggage: parseInt(formData.luggage),
+        vehicleType: formData.vehicleType,
+        childSeats: parseInt(formData.childSeats),
+        wheelchairAccess: formData.wheelchairAccess,
+        pets: formData.pets,
+        meetAndGreet: formData.meetAndGreet,
+        specialNotes: formData.specialNotes,
+        customerDetails: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+        },
+        quote: quoteResult,
+      };
+
+      // Store in sessionStorage for the result page
+      sessionStorage.setItem('quoteData', JSON.stringify(bookingData));
+
+      // Redirect to quote result page
+      router.push('/quote/result');
+    } catch (error) {
+      console.error('Quote calculation failed:', error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to calculate quote. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -127,6 +353,42 @@ export function QuoteFormSection() {
               <p className="mt-1 text-neutral-600">Where and when do you need to travel?</p>
             </div>
 
+            {/* Journey Type Toggle */}
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-neutral-700">
+                Journey Type
+              </label>
+              <div className="flex rounded-lg border border-neutral-300 p-1">
+                <button
+                  type="button"
+                  onClick={() => setJourneyType('one-way')}
+                  className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition-all ${
+                    journeyType === 'one-way'
+                      ? 'bg-primary-500 text-white shadow'
+                      : 'text-neutral-600 hover:bg-neutral-100'
+                  }`}
+                >
+                  One Way
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setJourneyType('return')}
+                  className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition-all ${
+                    journeyType === 'return'
+                      ? 'bg-primary-500 text-white shadow'
+                      : 'text-neutral-600 hover:bg-neutral-100'
+                  }`}
+                >
+                  Return Journey
+                </button>
+              </div>
+              {journeyType === 'return' && (
+                <p className="mt-2 text-sm text-accent-600 font-medium">
+                  ✓ 5% discount applied for return journeys
+                </p>
+              )}
+            </div>
+
             <Select
               label="Service Type"
               options={SERVICE_TYPES}
@@ -134,41 +396,45 @@ export function QuoteFormSection() {
               onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
             />
 
-            <Input
+            <AddressAutocomplete
               label="Pickup Location"
+              value={pickup.text}
+              onChange={(text) => setPickup({ ...pickup, text })}
+              onSelect={handlePickupSelect}
               placeholder="Enter pickup address or postcode"
-              value={formData.pickupLocation}
-              onChange={(e) => setFormData({ ...formData, pickupLocation: e.target.value })}
-              error={errors.pickupLocation}
+              error={errors.pickup}
             />
 
-            <Input
+            <AddressAutocomplete
               label="Drop-off Location"
+              value={dropoff.text}
+              onChange={(text) => setDropoff({ ...dropoff, text })}
+              onSelect={handleDropoffSelect}
               placeholder="Enter drop-off address or postcode"
-              value={formData.dropoffLocation}
-              onChange={(e) => setFormData({ ...formData, dropoffLocation: e.target.value })}
-              error={errors.dropoffLocation}
+              error={errors.dropoff}
             />
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className={journeyType === 'return' ? 'grid gap-4 sm:grid-cols-2' : ''}>
               <Input
-                type="date"
-                label="Pickup Date"
-                value={formData.pickupDate}
-                onChange={(e) => setFormData({ ...formData, pickupDate: e.target.value })}
-                error={errors.pickupDate}
+                type="datetime-local"
+                label="Pickup Date & Time"
+                value={formData.pickupDatetime}
+                onChange={(e) => setFormData({ ...formData, pickupDatetime: e.target.value })}
+                error={errors.pickupDatetime}
               />
 
-              <Input
-                type="time"
-                label="Pickup Time"
-                value={formData.pickupTime}
-                onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
-                error={errors.pickupTime}
-              />
+              {journeyType === 'return' && (
+                <Input
+                  type="datetime-local"
+                  label="Return Date & Time"
+                  value={formData.returnDatetime}
+                  onChange={(e) => setFormData({ ...formData, returnDatetime: e.target.value })}
+                  error={errors.returnDatetime}
+                />
+              )}
             </div>
 
-            {formData.serviceType === 'AIRPORT_PICKUP' && (
+            {(formData.serviceType === 'AIRPORT_PICKUP' || formData.serviceType === 'AIRPORT_DROPOFF') && (
               <Input
                 label="Flight Number (Optional)"
                 placeholder="e.g., BA123"
@@ -179,12 +445,12 @@ export function QuoteFormSection() {
           </div>
         )}
 
-        {/* Step 2: Passenger Info */}
+        {/* Step 2: Passenger Info & Special Requirements */}
         {currentStep === 2 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-black text-neutral-900">Passenger Information</h2>
-              <p className="mt-1 text-neutral-600">How many passengers and luggage?</p>
+              <h2 className="text-2xl font-black text-neutral-900">Passengers & Requirements</h2>
+              <p className="mt-1 text-neutral-600">Tell us about your passengers and any special needs</p>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2">
@@ -200,6 +466,68 @@ export function QuoteFormSection() {
                 options={LUGGAGE_OPTIONS}
                 value={formData.luggage}
                 onChange={(e) => setFormData({ ...formData, luggage: e.target.value })}
+              />
+            </div>
+
+            {/* Special Requirements */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-neutral-800">Special Requirements</h3>
+
+              <Select
+                label="Child Seats Required"
+                options={[
+                  { value: '0', label: 'No child seats needed' },
+                  { value: '1', label: '1 child seat' },
+                  { value: '2', label: '2 child seats' },
+                  { value: '3', label: '3 child seats' },
+                ]}
+                value={formData.childSeats}
+                onChange={(e) => setFormData({ ...formData, childSeats: e.target.value })}
+              />
+
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.wheelchairAccess}
+                    onChange={(e) => setFormData({ ...formData, wheelchairAccess: e.target.checked })}
+                    className="h-5 w-5 rounded border-neutral-300 text-primary-500 focus:ring-primary-500"
+                  />
+                  <span className="text-neutral-700">Wheelchair accessible vehicle required</span>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.pets}
+                    onChange={(e) => setFormData({ ...formData, pets: e.target.checked })}
+                    className="h-5 w-5 rounded border-neutral-300 text-primary-500 focus:ring-primary-500"
+                  />
+                  <span className="text-neutral-700">Travelling with pets</span>
+                </label>
+
+                {(formData.serviceType === 'AIRPORT_PICKUP') && (
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.meetAndGreet}
+                      onChange={(e) => setFormData({ ...formData, meetAndGreet: e.target.checked })}
+                      className="h-5 w-5 rounded border-neutral-300 text-primary-500 focus:ring-primary-500"
+                    />
+                    <div>
+                      <span className="text-neutral-700">Meet & Greet service</span>
+                      <span className="ml-2 text-sm text-accent-600 font-medium">+£10</span>
+                      <p className="text-sm text-neutral-500">Driver meets you in arrivals with a name board</p>
+                    </div>
+                  </label>
+                )}
+              </div>
+
+              <Input
+                label="Additional Notes (Optional)"
+                placeholder="Any other requirements or special instructions..."
+                value={formData.specialNotes}
+                onChange={(e) => setFormData({ ...formData, specialNotes: e.target.value })}
               />
             </div>
 
@@ -308,10 +636,23 @@ export function QuoteFormSection() {
           </div>
         )}
 
+        {/* Error Message */}
+        {submitError && (
+          <div className="mt-4 rounded-lg bg-red-50 p-4 ring-1 ring-red-200">
+            <p className="text-sm text-red-700">{submitError}</p>
+          </div>
+        )}
+
         {/* Navigation Buttons */}
         <div className="mt-8 flex gap-4">
           {currentStep > 1 && (
-            <Button type="button" variant="outline" onClick={handleBack} className="flex-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBack}
+              className="flex-1"
+              disabled={isSubmitting}
+            >
               Back
             </Button>
           )}
@@ -320,8 +661,13 @@ export function QuoteFormSection() {
               Next Step
             </Button>
           ) : (
-            <Button type="submit" variant="accent" className="flex-1">
-              Get Quote
+            <Button
+              type="submit"
+              variant="accent"
+              className="flex-1"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Calculating Quote...' : 'Get Quote'}
             </Button>
           )}
         </div>

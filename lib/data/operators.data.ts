@@ -9,7 +9,7 @@ import type { OperatorsPageData } from '@/types/landing.types';
 export const operatorsPageData: OperatorsPageData = {
   hero: {
     title: 'Join Our Network of Professional Transport Operators',
-    subtitle: 'Connect with customers across the UK and grow your business with TransferHub',
+    subtitle: 'Connect with customers across the UK and grow your business with Total Travel Solution',
   },
 
   stats: [
@@ -20,7 +20,7 @@ export const operatorsPageData: OperatorsPageData = {
   ],
 
   benefits: {
-    title: 'Why Join TransferHub?',
+    title: 'Why Join Total Travel Solution?',
     subtitle: 'Grow your business with a trusted platform',
     items: [
       {
@@ -89,7 +89,7 @@ export const operatorsPageData: OperatorsPageData = {
 
   requirements: {
     title: 'Requirements to Join',
-    subtitle: 'What you need to become a TransferHub operator',
+    subtitle: 'What you need to become a Total Travel Solution operator',
     items: [
       {
         category: 'Licensing & Insurance',
@@ -141,7 +141,7 @@ export const operatorsPageData: OperatorsPageData = {
       role: 'Executive Car Operator, London',
       avatar: 'https://i.pravatar.cc/150?img=12',
       rating: 5,
-      quote: 'TransferHub has transformed my business. Steady flow of quality customers, guaranteed payments, and excellent support. I\'ve increased my monthly income by 40% since joining.',
+      quote: 'Total Travel Solution has transformed my business. Steady flow of quality customers, guaranteed payments, and excellent support. I\'ve increased my monthly income by 40% since joining.',
     },
     {
       name: 'Sarah Thompson',
@@ -161,7 +161,7 @@ export const operatorsPageData: OperatorsPageData = {
 
   cta: {
     title: 'Ready to Grow Your Business?',
-    subtitle: 'Join 500+ professional operators earning with TransferHub',
+    subtitle: 'Join 500+ professional operators earning with Total Travel Solution',
     primaryButton: {
       text: 'Apply Now',
       href: '/operators/register',

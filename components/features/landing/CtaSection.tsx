@@ -44,7 +44,7 @@ export function CTASection() {
                 {/* CTA Buttons */}
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                   <Link
-                    href="/quote"
+                    href="/quote#quote-form"
                     className="group inline-flex items-center justify-center gap-2 rounded-lg bg-accent-500 px-8 py-4 text-lg font-semibold text-white shadow-xl transition-all hover:bg-accent-600 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-accent-400 focus:ring-offset-2 focus:ring-offset-primary-700"
                   >
                     Get Instant Quote

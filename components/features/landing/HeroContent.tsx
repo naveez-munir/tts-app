@@ -38,7 +38,7 @@ export function HeroContent() {
       {/* CTA Buttons */}
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
         <Link
-          href="/quote"
+          href="/quote#quote-form"
           className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-accent-500 to-accent-600 px-8 py-4 text-base font-bold text-white shadow-xl transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:shadow-accent-500/30 active:scale-95 sm:text-lg"
         >
           <span className="relative z-10 flex items-center justify-center gap-2">

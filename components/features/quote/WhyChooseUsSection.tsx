@@ -25,7 +25,7 @@ export function WhyChooseUsSection({ features }: WhyChooseUsSectionProps) {
         {/* Section Header */}
         <div className="text-center">
           <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-            Why Choose TransferHub?
+            Why Choose Total Travel Solution?
           </h2>
           <p className="mt-4 text-lg text-white/90 sm:text-xl">
             The smart way to book airport transfers across the UK

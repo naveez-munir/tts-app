@@ -37,10 +37,10 @@ export const landingMetadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TransferHub - UK Airport Transfers',
+    title: 'Total Travel Solution - UK Airport Transfers',
     description: 'Book reliable airport transfers across the UK. Instant quotes, professional drivers, competitive prices.',
     images: [`${siteConfig.url}/twitter-image.jpg`],
-    creator: '@transferhub',
+    creator: '@totaltravelsolution',
   },
   robots: {
     index: true,

@@ -36,7 +36,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {error && <p className="mt-1.5 text-sm text-error-600">{error}</p>}
+        {/* Error message - high contrast for visibility on dark backgrounds */}
+        {error && (
+          <p className="mt-1.5 rounded bg-error-100 px-2 py-1 text-sm font-medium text-error-700">
+            {error}
+          </p>
+        )}
       </div>
     );
   }

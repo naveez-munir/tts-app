@@ -55,17 +55,17 @@ export function Footer() {
             <h3 className="text-base font-semibold">For Operators</h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/operator/register" className="text-sm text-neutral-300 transition-colors hover:text-white">
+                <Link href="/operators" className="text-sm text-neutral-300 transition-colors hover:text-white">
                   Become an Operator
                 </Link>
               </li>
               <li>
-                <Link href="/operator/login" className="text-sm text-neutral-300 transition-colors hover:text-white">
+                <Link href="/sign-in" className="text-sm text-neutral-300 transition-colors hover:text-white">
                   Operator Login
                 </Link>
               </li>
               <li>
-                <Link href="/operator/how-it-works" className="text-sm text-neutral-300 transition-colors hover:text-white">
+                <Link href="/operators" className="text-sm text-neutral-300 transition-colors hover:text-white">
                   How It Works
                 </Link>
               </li>
@@ -77,19 +77,19 @@ export function Footer() {
             <h3 className="text-base font-semibold">Legal</h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/privacy" className="text-sm text-neutral-300 transition-colors hover:text-white">
+                <a href="#" className="text-sm text-neutral-300 transition-colors hover:text-white">
                   Privacy Policy
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/terms" className="text-sm text-neutral-300 transition-colors hover:text-white">
+                <a href="#" className="text-sm text-neutral-300 transition-colors hover:text-white">
                   Terms & Conditions
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/cookies" className="text-sm text-neutral-300 transition-colors hover:text-white">
+                <a href="#" className="text-sm text-neutral-300 transition-colors hover:text-white">
                   Cookie Policy
-                </Link>
+                </a>
               </li>
             </ul>
           </div>

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
 import "./globals.css";
+import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
+import { WHATSAPP_CONFIG } from "@/lib/constants";
 
 // Primary font: Inter (Professional, trustworthy, excellent readability)
 const inter = Inter({
@@ -41,6 +43,15 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${poppins.variable} h-full`}>
       <body className="h-full antialiased">
         {children}
+
+        {/* Global WhatsApp Chat Button - Available for all users */}
+        <WhatsAppButton
+          phoneNumber={WHATSAPP_CONFIG.PHONE_NUMBER}
+          message={WHATSAPP_CONFIG.DEFAULT_MESSAGE}
+          tooltipText={WHATSAPP_CONFIG.TOOLTIP_TEXT}
+          showPulse={true}
+          bottomOffset="md"
+        />
       </body>
     </html>
   );

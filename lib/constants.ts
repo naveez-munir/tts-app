@@ -64,3 +64,15 @@ export const TRUST_INDICATORS = [
   },
 ] as const;
 
+/**
+ * WhatsApp contact configuration
+ * Phone number format: country code + number (no + or spaces)
+ */
+export const WHATSAPP_CONFIG = {
+  /** WhatsApp phone number with country code (UK: 44) */
+  PHONE_NUMBER: '447459941056',
+  /** Default message when user clicks the chat button */
+  DEFAULT_MESSAGE: 'Hello! I have a question about booking an airport transfer.',
+  /** Tooltip text shown on hover */
+  TOOLTIP_TEXT: 'Chat with us on WhatsApp',
+} as const;

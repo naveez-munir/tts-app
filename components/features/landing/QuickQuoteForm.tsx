@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { AddressAutocomplete, AddressValue } from '@/components/ui/AddressAutocomplete';
 
 const VEHICLE_OPTIONS = [
   { value: 'SALOON', label: 'Saloon (1-4 passengers)' },
@@ -10,23 +12,124 @@ const VEHICLE_OPTIONS = [
   { value: 'MPV', label: 'MPV (5-6 passengers)' },
   { value: 'EXECUTIVE', label: 'Executive (1-4 passengers)' },
   { value: 'MINIBUS', label: 'Minibus (7-16 passengers)' },
-];
+] as const;
+
+interface LocationData {
+  text: string;
+  address: string;
+  postcode: string | null;
+  lat: number | null;
+  lng: number | null;
+  placeId: string;
+}
+
+const emptyLocation: LocationData = {
+  text: '',
+  address: '',
+  postcode: null,
+  lat: null,
+  lng: null,
+  placeId: '',
+};
 
 /**
  * Quick Quote Form Component
  * Displays a compact booking form for the hero section
  */
 export function QuickQuoteForm() {
-  const [formData, setFormData] = useState({
-    pickup: '',
-    dropoff: '',
-    date: '',
-    vehicleType: 'SALOON',
-  });
+  const router = useRouter();
+  const [journeyType, setJourneyType] = useState<'one-way' | 'return'>('one-way');
+  const [pickup, setPickup] = useState<LocationData>(emptyLocation);
+  const [dropoff, setDropoff] = useState<LocationData>(emptyLocation);
+  const [pickupDatetime, setPickupDatetime] = useState('');
+  const [returnDatetime, setReturnDatetime] = useState('');
+  const [vehicleType, setVehicleType] = useState('SALOON');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handlePickupSelect = (address: AddressValue) => {
+    setPickup({
+      text: address.address,
+      address: address.address,
+      postcode: address.postcode,
+      lat: address.lat,
+      lng: address.lng,
+      placeId: address.placeId,
+    });
+    setErrors((prev) => ({ ...prev, pickup: '' }));
+  };
+
+  const handleDropoffSelect = (address: AddressValue) => {
+    setDropoff({
+      text: address.address,
+      address: address.address,
+      postcode: address.postcode,
+      lat: address.lat,
+      lng: address.lng,
+      placeId: address.placeId,
+    });
+    setErrors((prev) => ({ ...prev, dropoff: '' }));
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // Accept text input as fallback if autocomplete isn't available (no lat/lng)
+    if (!pickup.text.trim()) {
+      newErrors.pickup = 'Please enter a pickup location';
+    }
+    if (!dropoff.text.trim()) {
+      newErrors.dropoff = 'Please enter a drop-off location';
+    }
+    if (!pickupDatetime) {
+      newErrors.pickupDatetime = 'Please select pickup date & time';
+    } else {
+      const pickupDate = new Date(pickupDatetime);
+      if (pickupDate <= new Date()) {
+        newErrors.pickupDatetime = 'Pickup must be in the future';
+      }
+    }
+    if (journeyType === 'return' && !returnDatetime) {
+      newErrors.returnDatetime = 'Please select return date & time';
+    } else if (journeyType === 'return' && returnDatetime) {
+      const returnDate = new Date(returnDatetime);
+      const pickupDate = new Date(pickupDatetime);
+      if (returnDate <= pickupDate) {
+        newErrors.returnDatetime = 'Return must be after pickup';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    window.location.href = '/quote';
+
+    if (!validateForm()) return;
+
+    // Build URL params to pass to quote page
+    // Use text as fallback address if autocomplete wasn't used
+    const params = new URLSearchParams({
+      journeyType,
+      pickupAddress: pickup.address || pickup.text,
+      pickupPostcode: pickup.postcode || '',
+      pickupLat: pickup.lat?.toString() || '',
+      pickupLng: pickup.lng?.toString() || '',
+      pickupPlaceId: pickup.placeId,
+      dropoffAddress: dropoff.address || dropoff.text,
+      dropoffPostcode: dropoff.postcode || '',
+      dropoffLat: dropoff.lat?.toString() || '',
+      dropoffLng: dropoff.lng?.toString() || '',
+      dropoffPlaceId: dropoff.placeId,
+      pickupDatetime,
+      vehicleType,
+    });
+
+    if (journeyType === 'return') {
+      params.set('returnDatetime', returnDatetime);
+    }
+
+    router.push(`/quote?${params.toString()}`);
   };
 
   return (
@@ -46,31 +149,94 @@ export function QuickQuoteForm() {
 
           {/* Form */}
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <Input
-              placeholder="Pickup location"
-              value={formData.pickup}
-              onChange={(e) => setFormData({ ...formData, pickup: e.target.value })}
-              className="bg-white/90 text-neutral-800 placeholder-neutral-500"
-            />
+            {/* Journey Type Toggle */}
+            <div className="flex rounded-lg bg-white/10 p-1">
+              <button
+                type="button"
+                onClick={() => setJourneyType('one-way')}
+                className={`flex-1 rounded-md py-2 text-sm font-semibold transition-all ${
+                  journeyType === 'one-way'
+                    ? 'bg-white text-neutral-800 shadow'
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                One Way
+              </button>
+              <button
+                type="button"
+                onClick={() => setJourneyType('return')}
+                className={`flex-1 rounded-md py-2 text-sm font-semibold transition-all ${
+                  journeyType === 'return'
+                    ? 'bg-white text-neutral-800 shadow'
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                Return
+              </button>
+            </div>
 
-            <Input
-              placeholder="Drop-off location"
-              value={formData.dropoff}
-              onChange={(e) => setFormData({ ...formData, dropoff: e.target.value })}
-              className="bg-white/90 text-neutral-800 placeholder-neutral-500"
-            />
+            {/* Pickup Location */}
+            <div>
+              <AddressAutocomplete
+                value={pickup.text}
+                onChange={(text) => setPickup({ ...pickup, text })}
+                onSelect={handlePickupSelect}
+                placeholder="Pickup location"
+                inputClassName="bg-white/90 text-neutral-800 placeholder-neutral-500"
+                error={errors.pickup}
+              />
+            </div>
 
-            <Input
-              type="datetime-local"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="bg-white/90 text-neutral-800"
-            />
+            {/* Dropoff Location */}
+            <div>
+              <AddressAutocomplete
+                value={dropoff.text}
+                onChange={(text) => setDropoff({ ...dropoff, text })}
+                onSelect={handleDropoffSelect}
+                placeholder="Drop-off location"
+                inputClassName="bg-white/90 text-neutral-800 placeholder-neutral-500"
+                error={errors.dropoff}
+              />
+            </div>
 
+            {/* Pickup Date & Time */}
+            <div>
+              <Input
+                type="datetime-local"
+                value={pickupDatetime}
+                onChange={(e) => {
+                  setPickupDatetime(e.target.value);
+                  setErrors((prev) => ({ ...prev, pickupDatetime: '' }));
+                }}
+                className="bg-white/90 text-neutral-800"
+                error={errors.pickupDatetime}
+              />
+            </div>
+
+            {/* Return Date & Time (conditional) */}
+            {journeyType === 'return' && (
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-white/80">
+                  Return Date & Time
+                </label>
+                <Input
+                  type="datetime-local"
+                  value={returnDatetime}
+                  onChange={(e) => {
+                    setReturnDatetime(e.target.value);
+                    setErrors((prev) => ({ ...prev, returnDatetime: '' }));
+                  }}
+                  className="bg-white/90 text-neutral-800"
+                  error={errors.returnDatetime}
+                />
+              </div>
+            )}
+
+            {/* Vehicle Type */}
             <Select
               options={VEHICLE_OPTIONS}
-              value={formData.vehicleType}
-              onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
+              value={vehicleType}
+              onChange={(e) => setVehicleType(e.target.value)}
               className="bg-white/90 text-neutral-800"
             />
 

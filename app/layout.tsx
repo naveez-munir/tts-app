@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 
 // Primary font: Inter (Professional, trustworthy, excellent readability)
@@ -18,6 +18,14 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600", "700"],
 });
 
+// Logo font: Poppins (Bold, modern, distinctive for branding)
+const poppins = Poppins({
+  subsets: ["latin"],
+  variable: "--font-poppins",
+  display: "swap",
+  weight: ["600", "700", "800", "900"],
+});
+
 export const metadata: Metadata = {
   title: "Airport Transfer Booking | UK's Leading Transfer Platform",
   description: "Book reliable airport transfers across the UK. Compare quotes from trusted operators. Competitive pricing, professional service, 24/7 support.",
@@ -30,8 +38,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="antialiased">
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${poppins.variable} h-full`}>
+      <body className="h-full antialiased">
         {children}
       </body>
     </html>

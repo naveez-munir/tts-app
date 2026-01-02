@@ -30,7 +30,11 @@ export default function ContactPageContent() {
         <Header />
         <main className="flex-1">
           {/* Hero Section */}
-          <PageHero title={contactPageData.hero.title} subtitle={contactPageData.hero.subtitle} />
+          <PageHero
+            badge="We're here to help"
+            title={contactPageData.hero.title}
+            subtitle={contactPageData.hero.subtitle}
+          />
 
           {/* Contact Information Cards */}
           <ContactInfoCards contactInfo={contactPageData.contactInfo} />

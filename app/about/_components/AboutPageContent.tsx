@@ -5,9 +5,10 @@ import { StatsGrid } from '@/components/sections/stats/StatsGrid';
 import { TwoColumnContent } from '@/components/sections/content/TwoColumnContent';
 import { ValuesSection } from '@/components/sections/content/ValuesSection';
 import { WhyChooseSection } from '@/components/sections/content/WhyChooseSection';
+import { MissionVisionSection } from '@/components/sections/content/MissionVisionSection';
 import { CTASection } from '@/components/features/landing/CtaSection';
 import { OrganizationSchema, BreadcrumbSchema } from '@/components/seo/StructuredData';
-import { aboutPageData } from '@/lib/data/about.data';
+import { aboutPageData, missionData, visionData } from '@/lib/data/about.data';
 import { siteConfig } from '@/lib/data/seo.data';
 
 /**
@@ -65,6 +66,9 @@ export default function AboutPageContent() {
             iconColor="accent"
             backgroundColor="neutral"
           />
+
+          {/* Mission & Vision Section */}
+          <MissionVisionSection mission={missionData} vision={visionData} />
 
           {/* CTA Section */}
           <CTASection />

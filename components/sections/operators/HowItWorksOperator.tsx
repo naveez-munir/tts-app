@@ -15,7 +15,7 @@ interface HowItWorksOperatorProps {
 
 export function HowItWorksOperator({ title, subtitle, steps }: HowItWorksOperatorProps) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-900 py-16 sm:py-20 lg:py-24">
+    <section id="how-it-works" className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-900 py-16 sm:py-20 lg:py-24">
       {/* Animated gradient orbs */}
       <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-accent-500/30 blur-3xl" />
       <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-primary-400/30 blur-3xl" />

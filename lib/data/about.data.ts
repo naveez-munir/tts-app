@@ -1,4 +1,4 @@
-import type { AboutPageData } from '@/types/landing.types';
+import type { AboutPageData, MissionVisionData } from '@/types/landing.types';
 
 /**
  * About Page Data
@@ -87,5 +87,56 @@ export const aboutPageData: AboutPageData = {
       icon: 'refresh',
     },
   ],
+};
+
+/**
+ * Mission & Vision Section Data
+ */
+export const missionData: MissionVisionData = {
+  title: 'Our Mission',
+  description:
+    'To revolutionize airport transfers by creating a transparent, competitive marketplace that connects customers with trusted transport operators. We deliver exceptional service, competitive pricing, and peace of mind for every journey.',
+  features: [
+    {
+      title: 'Transparent Pricing',
+      description: 'No hidden fees, clear upfront costs',
+      icon: 'currency',
+    },
+    {
+      title: 'Vetted Operators',
+      description: 'Licensed and insured professionals',
+      icon: 'badge',
+    },
+    {
+      title: '24/7 Support',
+      description: 'Always here to help you',
+      icon: 'clock',
+    },
+  ],
+  images: [],
+};
+
+export const visionData: MissionVisionData = {
+  title: 'Our Vision',
+  description:
+    "To become the UK's most trusted and innovative airport transfer platform, setting new standards for reliability, affordability, and customer satisfaction. We envision a future where every traveler experiences stress-free, seamless journeys.",
+  features: [
+    {
+      title: 'UK-Wide Coverage',
+      description: 'All major airports covered',
+      icon: 'map',
+    },
+    {
+      title: 'Tech-Driven',
+      description: 'Seamless digital experience',
+      icon: 'computer',
+    },
+    {
+      title: 'Eco-Friendly',
+      description: 'Sustainable transport options',
+      icon: 'leaf',
+    },
+  ],
+  images: [],
 };
 

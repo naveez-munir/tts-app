@@ -4,20 +4,23 @@ import { FeatureCard } from '@/components/ui/Cards';
 
 export function FeaturesSection() {
   return (
-    <section className="bg-neutral-50 py-16 sm:py-20 lg:py-24">
+    <section
+      id="features"
+      className="bg-neutral-100 py-16 sm:py-20 lg:py-24"
+    >
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-neutral-900 sm:text-4xl lg:text-5xl">
+        <header className="mx-auto max-w-3xl text-center">
+          <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl lg:text-4xl">
             {SECTION_HEADERS.features.title}
           </h2>
-          <p className="mt-4 text-lg text-neutral-600 sm:text-xl">
+          <p className="mt-3 text-base text-neutral-600 sm:mt-4 sm:text-lg">
             {SECTION_HEADERS.features.subtitle}
           </p>
-        </div>
+        </header>
 
-        {/* Features Grid */}
-        <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
+        {/* Features Grid - Equal height cards */}
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3">
           {FEATURES.map((feature, index) => (
             <FeatureCard key={index} feature={feature} />
           ))}

@@ -15,8 +15,14 @@ export function CTASection() {
         {/* Floating CTA Card */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-900 p-8 shadow-2xl sm:p-12 lg:p-16">
           {/* Animated gradient orbs */}
-          <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-accent-500/30 blur-3xl" />
-          <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-primary-400/30 blur-3xl" />
+          <div
+            className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-accent-500/30 blur-3xl"
+            aria-hidden="true"
+          />
+          <div
+            className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-primary-400/30 blur-3xl"
+            aria-hidden="true"
+          />
 
           {/* Grid pattern overlay */}
           <div className="absolute inset-0 opacity-[0.03]">
@@ -33,10 +39,10 @@ export function CTASection() {
                   <span className="text-sm font-bold text-white">4.8/5 Rating</span>
                 </div>
 
-                <h2 className="mt-6 text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
+                <h2 className="mt-6 text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
                   Ready to Book?
                 </h2>
-                <p className="mt-4 text-xl text-white/90 sm:text-2xl">
+                <p className="mt-4 text-lg leading-relaxed text-white/90 sm:text-xl">
                   Get instant quotes, competitive prices, and professional service. Your journey
                   starts here.
                 </p>

@@ -4,31 +4,39 @@ import { StepCard } from '@/components/ui/Cards';
 
 export function HowItWorksSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-900 py-16 sm:py-20 lg:py-24">
-      {/* Animated gradient orbs */}
-      <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-accent-500/30 blur-3xl" />
-      <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-primary-400/30 blur-3xl" />
-
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 opacity-[0.03]">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff1a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff1a_1px,transparent_1px)] bg-[size:3rem_3rem]" />
-      </div>
+    <section
+      id="how-it-works"
+      className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-900 py-16 sm:py-20 lg:py-24"
+    >
+      {/* Decorative gradient orbs */}
+      <div
+        className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-accent-500/30 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-primary-400/30 blur-3xl"
+        aria-hidden="true"
+      />
 
       <div className="container relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+        <header className="mx-auto max-w-3xl text-center">
+          <h2 className="text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
             {SECTION_HEADERS.howItWorks.title}
           </h2>
-          <p className="mt-4 text-lg text-white/90 sm:text-xl">
+          <p className="mt-3 text-base text-white/90 sm:mt-4 sm:text-lg">
             {SECTION_HEADERS.howItWorks.subtitle}
           </p>
-        </div>
+        </header>
 
-        {/* Steps Grid */}
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
+        {/* Steps Grid - Equal height cards with connecting lines on desktop */}
+        <div className="mt-10 grid gap-6 overflow-visible sm:mt-12 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4 lg:gap-8">
           {HOW_IT_WORKS_STEPS.map((step, index) => (
-            <StepCard key={index} step={step} isLast={index === HOW_IT_WORKS_STEPS.length - 1} />
+            <StepCard
+              key={index}
+              step={step}
+              isLast={index === HOW_IT_WORKS_STEPS.length - 1}
+            />
           ))}
         </div>
       </div>

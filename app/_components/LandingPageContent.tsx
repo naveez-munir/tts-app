@@ -3,7 +3,6 @@ import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/features/landing/HeroSection';
 import { FeaturesSection } from '@/components/features/landing/FeaturesSection';
 import { HowItWorksSection } from '@/components/features/landing/HowItWorksSection';
-import { MissionVisionSection } from '@/components/features/landing/MissionVisionSection';
 import { TestimonialsSection } from '@/components/features/landing/TestimonialsSection';
 import { CTASection } from '@/components/features/landing/CtaSection';
 import { OrganizationSchema, LocalBusinessSchema } from '@/components/seo/StructuredData';
@@ -26,7 +25,6 @@ export default function LandingPageContent() {
           <HeroSection />
           <FeaturesSection />
           <HowItWorksSection />
-          <MissionVisionSection />
           <TestimonialsSection />
           <CTASection />
         </main>

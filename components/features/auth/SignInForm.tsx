@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { authApi } from '@/lib/api';
 import { LoginSchema } from '@/lib/types';
+import { getIcon } from '@/lib/utils/Icons';
 
 export function SignInForm() {
   const router = useRouter();
@@ -57,14 +58,19 @@ export function SignInForm() {
   };
 
   return (
-    <div className="w-full max-w-md">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {errors.general && (
-          <div className="rounded-lg bg-error-50 p-4 text-sm text-error-700">
-            {errors.general}
-          </div>
-        )}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Error Alert */}
+      {errors.general && (
+        <div className="flex items-start gap-3 rounded-lg bg-error-50 p-4 text-sm text-error-700 ring-1 ring-error-200">
+          <span className="h-5 w-5 shrink-0" aria-hidden="true">
+            {getIcon('info')}
+          </span>
+          <span>{errors.general}</span>
+        </div>
+      )}
 
+      {/* Form Fields */}
+      <div className="space-y-4">
         <Input
           type="email"
           label="Email Address"
@@ -86,78 +92,87 @@ export function SignInForm() {
           disabled={isLoading}
           required
         />
+      </div>
 
-        {/* Remember Me & Forgot Password */}
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={formData.rememberMe}
-              onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-              className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-0"
-              disabled={isLoading}
-            />
-            <span className="text-sm text-neutral-700">Remember me</span>
-          </label>
+      {/* Remember Me & Forgot Password */}
+      <div className="flex items-center justify-between">
+        <label className="group flex cursor-pointer items-center gap-2.5 py-1">
+          <input
+            type="checkbox"
+            checked={formData.rememberMe}
+            onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+            className="h-4 w-4 rounded border-neutral-300 text-primary-600 transition-colors focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            disabled={isLoading}
+          />
+          <span className="text-sm text-neutral-600 transition-colors group-hover:text-neutral-900">
+            Remember me
+          </span>
+        </label>
 
-          <Link
-            href="/forgot-password"
-            className="text-sm font-semibold text-accent-600 hover:text-accent-700 hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </div>
-
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          variant="accent"
-          size="lg"
-          className="w-full"
-          disabled={isLoading}
+        <Link
+          href="/forgot-password"
+          className="rounded-md px-2 py-1.5 text-sm font-medium text-accent-600 transition-colors hover:text-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
         >
-          {isLoading ? 'Signing in...' : 'Sign In'}
-        </Button>
+          Forgot password?
+        </Link>
+      </div>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-neutral-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-4 text-neutral-500">New here?</span>
-          </div>
-        </div>
+      {/* Submit Button */}
+      <Button
+        type="submit"
+        variant="accent"
+        size="lg"
+        className="w-full"
+        disabled={isLoading}
+      >
+        {isLoading ? 'Signing in...' : 'Sign In'}
+      </Button>
 
-        <div className="space-y-3 text-center text-sm">
-          <p className="text-neutral-600">
-            <strong>Customers:</strong> Book a journey to create your account automatically
-          </p>
-          <Link
-            href="/quote"
-            className="inline-flex items-center gap-2 font-semibold text-primary-600 hover:text-primary-700 hover:underline"
-          >
-            Get a quote
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
-          <div className="pt-2">
-            <p className="text-neutral-600">
-              <strong>Transport Operators:</strong> Join our platform
-            </p>
-            <Link
-              href="/operators/register"
-              className="inline-flex items-center gap-2 font-semibold text-accent-600 hover:text-accent-700 hover:underline"
-            >
-              Register as operator
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          </div>
+      {/* Divider */}
+      <div className="relative py-1">
+        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+          <div className="w-full border-t border-neutral-200" />
         </div>
-      </form>
-    </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-white px-3 font-medium uppercase tracking-wide text-neutral-400">
+            New here?
+          </span>
+        </div>
+      </div>
+
+      {/* Registration Links */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {/* Customer Option */}
+        <Link
+          href="/quote"
+          className="group flex flex-col items-center rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-center transition-all hover:border-primary-300 hover:bg-primary-50"
+        >
+          <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-600 transition-colors group-hover:bg-primary-200">
+            <span className="h-5 w-5" aria-hidden="true">
+              {getIcon('calendar')}
+            </span>
+          </div>
+          <span className="text-xs font-medium text-neutral-500">Customers</span>
+          <span className="mt-0.5 text-sm font-semibold text-neutral-900">Get a Quote</span>
+          <span className="mt-1 text-xs text-neutral-500">Account created automatically</span>
+        </Link>
+
+        {/* Operator Option */}
+        <Link
+          href="/operators/register"
+          className="group flex flex-col items-center rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-center transition-all hover:border-accent-300 hover:bg-accent-50"
+        >
+          <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent-100 text-accent-600 transition-colors group-hover:bg-accent-200">
+            <span className="h-5 w-5" aria-hidden="true">
+              {getIcon('users')}
+            </span>
+          </div>
+          <span className="text-xs font-medium text-neutral-500">Operators</span>
+          <span className="mt-0.5 text-sm font-semibold text-neutral-900">Join Platform</span>
+          <span className="mt-1 text-xs text-neutral-500">Register your fleet</span>
+        </Link>
+      </div>
+    </form>
   );
 }
 

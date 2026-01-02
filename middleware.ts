@@ -23,6 +23,9 @@ const publicRoutes = [
   '/contact',
   '/operators',
   '/operators/register',
+  '/privacy',
+  '/terms',
+  '/cookies',
 ];
 
 export function middleware(request: NextRequest) {

@@ -34,6 +34,9 @@ const JourneySchema = z.object({
   serviceType: z.enum(['AIRPORT_PICKUP', 'AIRPORT_DROPOFF', 'POINT_TO_POINT']),
   flightNumber: z.string().optional(),
   specialRequirements: z.string().optional(),
+  customerName: z.string().optional(),
+  customerEmail: z.string().email().optional(),
+  customerPhone: z.string().optional(),
   customerPrice: z.number().positive('Price must be positive'),
 });
 

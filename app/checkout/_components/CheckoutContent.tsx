@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { Button } from '@/components/ui/Button';
 import {
   Calendar,
   Users,
@@ -21,6 +22,8 @@ import type { SingleJourneyQuote, ReturnJourneyQuote } from '@/lib/types/quote.t
 import { ServiceType, VehicleType } from '@/lib/types/enums';
 import { AuthSection } from './AuthSection';
 import { PaymentSection } from './PaymentSection';
+
+const MAX_BOOKING_ATTEMPTS = 3;
 
 interface QuoteData {
   journeyType: 'one-way' | 'return';
@@ -70,6 +73,14 @@ export function CheckoutContent() {
   const [error, setError] = useState<string | null>(null);
   const [bookingInfo, setBookingInfo] = useState<BookingInfo | null>(null);
 
+  // Retry counter - persist across page reloads
+  const getRetryCount = () => {
+    if (typeof window === 'undefined') return 0;
+    const stored = sessionStorage.getItem('bookingRetryCount');
+    return stored ? parseInt(stored, 10) : 0;
+  };
+  const [retryCount, setRetryCount] = useState(getRetryCount());
+
   useEffect(() => {
     // Load quote data from sessionStorage
     const stored = sessionStorage.getItem('quoteData');
@@ -96,8 +107,22 @@ export function CheckoutContent() {
   }, [router]);
 
   // Create booking when user authenticates and moves to payment step
-  const createBookingForPayment = async () => {
+  const createBookingForPayment = useCallback(async () => {
     if (!quoteData || !user || bookingInfo) return;
+
+    // Check if max attempts reached
+    const currentRetryCount = getRetryCount();
+    if (currentRetryCount >= MAX_BOOKING_ATTEMPTS) {
+      setError(
+        `Failed to create booking after ${MAX_BOOKING_ATTEMPTS} attempts. Please try again later or contact support.`
+      );
+      return;
+    }
+
+    // Increment retry count and persist
+    const newRetryCount = currentRetryCount + 1;
+    setRetryCount(newRetryCount);
+    sessionStorage.setItem('bookingRetryCount', String(newRetryCount));
 
     setIsCreatingBooking(true);
     setError(null);
@@ -131,6 +156,9 @@ export function CheckoutContent() {
           serviceType: quoteData.serviceType as ServiceType,
           flightNumber: quoteData.flightNumber,
           specialRequirements: specialReqs.join('; ') || undefined,
+          customerName: `${quoteData.customerDetails.firstName} ${quoteData.customerDetails.lastName}`,
+          customerEmail: quoteData.customerDetails.email,
+          customerPhone: quoteData.customerDetails.phone,
           customerPrice: singleQuote.totalPrice,
           isReturnJourney: false,
         });
@@ -140,6 +168,9 @@ export function CheckoutContent() {
           bookingId: booking.id,
           bookingReference: booking.bookingReference,
         });
+        // Reset retry count on success
+        setRetryCount(0);
+        sessionStorage.removeItem('bookingRetryCount');
       } else {
         // Create return booking
         const returnQuote = quote as ReturnJourneyQuote;
@@ -161,6 +192,9 @@ export function CheckoutContent() {
             serviceType: quoteData.serviceType as ServiceType,
             flightNumber: quoteData.flightNumber,
             specialRequirements: specialReqs.join('; ') || undefined,
+            customerName: `${quoteData.customerDetails.firstName} ${quoteData.customerDetails.lastName}`,
+            customerEmail: quoteData.customerDetails.email,
+            customerPhone: quoteData.customerDetails.phone,
             customerPrice: returnQuote.outbound.totalPrice,
           },
           returnJourney: {
@@ -179,6 +213,9 @@ export function CheckoutContent() {
             vehicleType: quoteData.vehicleType as VehicleType,
             serviceType: quoteData.serviceType as ServiceType,
             specialRequirements: specialReqs.join('; ') || undefined,
+            customerName: `${quoteData.customerDetails.firstName} ${quoteData.customerDetails.lastName}`,
+            customerEmail: quoteData.customerDetails.email,
+            customerPhone: quoteData.customerDetails.phone,
             customerPrice: returnQuote.returnJourney.totalPrice,
           },
           totalPrice: returnQuote.totalPrice,
@@ -190,25 +227,44 @@ export function CheckoutContent() {
           bookingGroupId: bookingGroup.id,
           groupReference: bookingGroup.groupReference,
         });
+        // Reset retry count on success
+        setRetryCount(0);
+        sessionStorage.removeItem('bookingRetryCount');
       }
     } catch (err) {
-      console.error('Booking creation failed:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create booking. Please try again.');
+      const currentRetryCount = getRetryCount();
+      console.error(`Booking creation failed (attempt ${currentRetryCount}/${MAX_BOOKING_ATTEMPTS}):`, err);
+
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create booking.';
+      const attemptsRemaining = MAX_BOOKING_ATTEMPTS - currentRetryCount;
+
+      if (attemptsRemaining > 0) {
+        setError(`${errorMessage} Retrying... (${attemptsRemaining} attempt${attemptsRemaining > 1 ? 's' : ''} remaining)`);
+      } else {
+        setError(`${errorMessage} Maximum retry attempts reached. Please try again later or contact support.`);
+      }
     } finally {
       setIsCreatingBooking(false);
     }
-  };
+  }, [quoteData, user, bookingInfo]);
 
   // Create booking when step changes to payment
   useEffect(() => {
     if (step === 'payment' && user && quoteData && !bookingInfo && !isCreatingBooking) {
       createBookingForPayment();
     }
-  }, [step, user, quoteData, bookingInfo, isCreatingBooking]);
+  }, [step, user, quoteData, bookingInfo, isCreatingBooking, createBookingForPayment]);
 
   const handleAuthSuccess = (authenticatedUser: User) => {
     setUser(authenticatedUser);
     setStep('payment');
+  };
+
+  const handleRetryBooking = () => {
+    setRetryCount(0);
+    sessionStorage.removeItem('bookingRetryCount');
+    setError(null);
+    createBookingForPayment();
   };
 
   const handlePaymentSuccess = async (paymentIntentId: string) => {
@@ -313,9 +369,23 @@ export function CheckoutContent() {
             {/* Main Content - Left Column */}
             <div className="lg:col-span-2">
               {error && (
-                <div className="mb-6 flex items-center gap-3 rounded-lg bg-red-50 p-4 ring-1 ring-red-200">
-                  <AlertCircle className="h-5 w-5 text-red-500" />
-                  <p className="text-sm text-red-700">{error}</p>
+                <div className="mb-6 rounded-lg bg-red-50 p-4 ring-1 ring-red-200">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm text-red-700">{error}</p>
+                      {retryCount >= MAX_BOOKING_ATTEMPTS && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRetryBooking}
+                          className="mt-3"
+                        >
+                          Try Again
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 

@@ -21,27 +21,29 @@ const iconGradients = {
 export function FeatureCard({ feature, variant = 'card', iconColor = 'primary' }: FeatureCardProps) {
   if (variant === 'minimal') {
     return (
-      <div className="group rounded-xl bg-white p-6 shadow-md transition-all hover:shadow-lg">
+      <div className="group flex h-full flex-col rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition-all hover:border-neutral-300 hover:shadow-md sm:p-6">
         <div
-          className={`flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-br ${iconGradients[iconColor]} text-white transition-transform group-hover:scale-110`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${iconGradients[iconColor]} text-white transition-transform group-hover:scale-105`}
+          aria-hidden="true"
         >
-          <span className="h-6 w-6">{getIcon(feature.icon)}</span>
+          <span className="h-5 w-5">{getIcon(feature.icon)}</span>
         </div>
-        <h3 className="mt-4 text-lg font-bold text-neutral-900">{feature.title}</h3>
-        <p className="mt-2 text-justify text-sm text-neutral-600">{feature.description}</p>
+        <h3 className="mt-4 text-base font-bold text-neutral-900">{feature.title}</h3>
+        <p className="mt-2 flex-grow text-sm leading-relaxed text-neutral-600">{feature.description}</p>
       </div>
     );
   }
 
   return (
-    <div className="group rounded-lg bg-white p-6 shadow-md transition-all hover:shadow-xl sm:p-8">
+    <div className="group flex h-full flex-col rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition-all hover:border-neutral-300 hover:shadow-md sm:p-6">
       <div
-        className={`flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-br ${iconGradients[iconColor]} text-white transition-transform group-hover:scale-110`}
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${iconGradients[iconColor]} text-white transition-transform group-hover:scale-105`}
+        aria-hidden="true"
       >
-        <span className="h-8 w-8">{getIcon(feature.icon)}</span>
+        <span className="h-6 w-6">{getIcon(feature.icon)}</span>
       </div>
-      <h3 className="mt-6 text-xl font-semibold text-neutral-900">{feature.title}</h3>
-      <p className="mt-3 text-justify text-base text-neutral-600">{feature.description}</p>
+      <h3 className="mt-4 text-lg font-semibold text-neutral-900">{feature.title}</h3>
+      <p className="mt-2 flex-grow text-sm leading-relaxed text-neutral-600 sm:text-base">{feature.description}</p>
     </div>
   );
 }
@@ -49,6 +51,7 @@ export function FeatureCard({ feature, variant = 'card', iconColor = 'primary' }
 /**
  * StepCard - Glass card with number badge and icon
  * Used in HowItWorksSection
+ * Equal height with flex layout for consistent appearance
  */
 interface StepCardProps {
   step: Step;
@@ -57,32 +60,37 @@ interface StepCardProps {
 
 export function StepCard({ step, isLast = false }: StepCardProps) {
   return (
-    <div className="group relative flex">
-      {/* Connecting Arrow (Desktop) */}
+    <div className="group relative flex h-full">
+      {/* Connecting Line - Only visible on lg (4-column layout), positioned at top */}
       {!isLast && (
-        <div className="absolute -right-4 top-8 hidden h-0.5 w-8 bg-gradient-to-r from-accent-400 to-transparent lg:block" />
+        <div
+          className="absolute -right-4 top-6 hidden h-0.5 w-8 bg-gradient-to-r from-accent-500/60 to-transparent lg:block"
+          aria-hidden="true"
+        />
       )}
 
       {/* Card */}
-      <div className="relative flex w-full flex-col overflow-hidden rounded-2xl bg-white/10 p-4 shadow-lg ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/15 sm:p-5">
-        {/* Gradient orb */}
-        <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-accent-400/20 opacity-75 blur-2xl transition-opacity group-hover:opacity-100" />
-
-        {/* Number Badge - Top Right */}
-        <div className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent-500 shadow-lg">
+      <div className="flex h-full w-full flex-col rounded-xl bg-white/10 p-5 ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/15 sm:p-6">
+        {/* Number Badge - Compact pill, positioned top-left */}
+        <div className="absolute -left-1 -top-1.5 flex h-6 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-secondary-600 to-accent-500 shadow sm:-left-1.5 sm:-top-2 sm:h-7 sm:w-9">
           <span className="text-xs font-bold text-white">{step.number}</span>
         </div>
 
-        <div className="relative flex flex-col">
-          {/* Icon */}
-          <div className="h-10 w-10 text-accent-300">{getIcon(step.icon)}</div>
-
-          {/* Title */}
-          <h3 className="mt-3 text-lg font-bold text-white">{step.title}</h3>
-
-          {/* Description */}
-          <p className="mt-2 text-justify text-sm leading-relaxed text-white/80">{step.description}</p>
+        {/* Icon in container */}
+        <div
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-500/20 text-accent-300"
+          aria-hidden="true"
+        >
+          <span className="h-5 w-5">{getIcon(step.icon)}</span>
         </div>
+
+        {/* Title */}
+        <h3 className="mt-4 text-base font-bold text-white sm:text-lg">{step.title}</h3>
+
+        {/* Description - flex-grow for equal height */}
+        <p className="mt-2 flex-grow text-justify text-sm leading-relaxed text-white/80">
+          {step.description}
+        </p>
       </div>
     </div>
   );
@@ -153,14 +161,17 @@ interface StatCardProps {
 
 export function StatCard({ stat }: StatCardProps) {
   return (
-    <div className="rounded-2xl bg-white/10 p-6 backdrop-blur-sm ring-1 ring-white/20">
+    <div className="rounded-2xl bg-white/10 p-5 backdrop-blur-sm ring-1 ring-white/20 sm:p-6">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent-500">
-          <span className="h-6 w-6 text-white">{getIcon(stat.icon)}</span>
+        <div
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-500 sm:h-12 sm:w-12"
+          aria-hidden="true"
+        >
+          <span className="h-5 w-5 text-white sm:h-6 sm:w-6">{getIcon(stat.icon)}</span>
         </div>
-        <div>
-          <div className="text-2xl font-bold text-white">{stat.value}</div>
-          <div className="text-sm text-white/70">{stat.label}</div>
+        <div className="min-w-0">
+          <div className="text-xl font-bold text-white sm:text-2xl">{stat.value}</div>
+          <div className="text-xs text-white/80 sm:text-sm">{stat.label}</div>
         </div>
       </div>
     </div>

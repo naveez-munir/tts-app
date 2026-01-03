@@ -17,6 +17,8 @@ const protectedRoutes: Record<string, string[]> = {
 const publicRoutes = [
   '/',
   '/sign-in',
+  '/forgot-password',
+  '/reset-password',
   '/quote',
   '/checkout', // Checkout handles auth inline
   '/about',

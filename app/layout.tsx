@@ -29,8 +29,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Airport Transfer Booking | UK's Leading Transfer Platform",
-  description: "Book reliable airport transfers across the UK. Compare quotes from trusted operators. Competitive pricing, professional service, 24/7 support.",
+  title: "Travel Booking | UK's Leading Transfer Platform",
+  description: "Book reliable transfers across the UK. Compare quotes from trusted operators. Competitive pricing, professional service, 24/7 support.",
   keywords: ["airport transfer", "UK airport taxi", "airport pickup", "airport dropoff", "transfer booking"],
 };
 

@@ -1,10 +1,175 @@
 @import "tailwindcss";
+@import "react-datepicker/dist/react-datepicker.css";
 
 /* ============================================
    SMOOTH SCROLL BEHAVIOR
    ============================================ */
 html {
   scroll-behavior: smooth;
+}
+
+/* ============================================
+   REACT DATEPICKER - MINIMAL FIXES ONLY
+   ============================================ */
+
+/* Ensure wrapper doesn't collapse */
+.react-datepicker-wrapper {
+  width: 100%;
+  display: block;
+}
+
+.react-datepicker__input-container {
+  width: 100%;
+  display: block;
+}
+
+/* Ensure popper is visible */
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+/* Ensure calendar container is visible */
+.react-datepicker {
+  display: flex !important;
+  flex-direction: column !important;
+  font-family: inherit !important;
+}
+
+.react-datepicker__month-container {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Inline calendar compact styling */
+.datepicker-inline-wrapper {
+  overflow: visible !important;
+}
+
+.datepicker-inline-wrapper .react-datepicker {
+  border: none !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+.datepicker-inline-wrapper .react-datepicker__month-container {
+  padding: 0 !important;
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+.datepicker-inline-wrapper .react-datepicker__month {
+  margin: 8px 12px !important;
+}
+
+.datepicker-inline-wrapper .react-datepicker__day,
+.datepicker-inline-wrapper .react-datepicker__day-name {
+  width: 36px !important;
+  line-height: 36px !important;
+  margin: 1px !important;
+}
+
+.datepicker-inline-wrapper .react-datepicker__week {
+  display: flex !important;
+  justify-content: space-around !important;
+}
+
+.datepicker-inline-wrapper .react-datepicker__day-names {
+  display: flex !important;
+  justify-content: space-around !important;
+  padding: 0 8px !important;
+}
+
+/* Disabled past dates */
+.react-datepicker__day--disabled {
+  color: #d1d5db !important;
+  cursor: not-allowed !important;
+  background-color: transparent !important;
+}
+
+.react-datepicker__day--disabled:hover {
+  background-color: transparent !important;
+  color: #d1d5db !important;
+}
+
+/* Ensure header elements are visible - CRITICAL */
+.react-datepicker__header {
+  display: block !important;
+  position: relative !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  padding: 16px !important;
+  background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
+}
+
+.react-datepicker__current-month {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin-bottom: 8px !important;
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+}
+
+.react-datepicker__navigation {
+  display: block !important;
+  position: absolute !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  top: 16px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.react-datepicker__navigation--previous {
+  left: 10px !important;
+}
+
+.react-datepicker__navigation--next {
+  right: 10px !important;
+}
+
+.react-datepicker__day-names {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin-bottom: 4px !important;
+}
+
+.react-datepicker__day-name {
+  color: white !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  width: 36px !important;
+  line-height: 36px !important;
+  margin: 0 !important;
+}
+
+/* Month/Year Dropdowns */
+.react-datepicker__month-dropdown-container,
+.react-datepicker__year-dropdown-container {
+  display: inline-block !important;
+  margin: 0 4px !important;
+}
+
+.react-datepicker__month-select,
+.react-datepicker__year-select {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 6px !important;
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  padding: 4px 8px !important;
+  cursor: pointer !important;
+}
+
+.react-datepicker__month-select:focus,
+.react-datepicker__year-select:focus {
+  outline: none !important;
+  border-color: white !important;
 }
 
 /* ============================================
@@ -169,5 +334,120 @@ html {
     }
   }
 
+  @keyframes ping-slow {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
   --animate-float: float 3s ease-in-out infinite;
+  --animate-ping-slow: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* ============================================
+   INTERNATIONAL PHONE INPUT STYLES
+   ============================================ */
+
+/* Main wrapper - the PhoneInput component root */
+.phone-input-wrapper.PhoneInput {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.5rem !important;
+  background-color: white !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+}
+
+.phone-input-wrapper.PhoneInput:focus-within {
+  border-color: var(--color-primary-500, #3b82f6) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Error state */
+.phone-input-error.PhoneInput {
+  border-color: var(--color-accent-500, #ef4444) !important;
+}
+
+.phone-input-error.PhoneInput:focus-within {
+  border-color: var(--color-accent-500, #ef4444) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Country select container */
+.phone-input-wrapper .PhoneInputCountry {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0.75rem !important;
+  padding-right: 0.5rem !important;
+  border-right: 1px solid #e5e7eb !important;
+  background-color: #f9fafb !important;
+  border-radius: 0.5rem 0 0 0.5rem !important;
+  position: relative !important;
+}
+
+.phone-input-wrapper .PhoneInputCountryIcon {
+  width: 24px !important;
+  height: 18px !important;
+  border-radius: 2px !important;
+  overflow: hidden !important;
+}
+
+.phone-input-wrapper .PhoneInputCountrySelectArrow {
+  margin-left: 0.375rem !important;
+  width: 0.4rem !important;
+  height: 0.4rem !important;
+  border-style: solid !important;
+  border-color: #6b7280 !important;
+  border-width: 0 1px 1px 0 !important;
+  transform: rotate(45deg) !important;
+}
+
+/* Country select dropdown (invisible overlay) */
+.phone-input-wrapper .PhoneInputCountrySelect {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 1 !important;
+}
+
+/* Phone number input field - THE KEY FIX */
+.phone-input-wrapper .PhoneInputInput,
+.phone-input-wrapper .phone-input-field {
+  flex: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 0.75rem !important;
+  border: none !important;
+  outline: none !important;
+  background-color: transparent !important;
+  font-size: 1rem !important;
+  color: #1f2937 !important;
+  line-height: 1.5 !important;
+  display: block !important;
+}
+
+.phone-input-wrapper .PhoneInputInput::placeholder,
+.phone-input-wrapper .phone-input-field::placeholder {
+  color: #9ca3af !important;
+}
+
+.phone-input-wrapper .PhoneInputInput:disabled,
+.phone-input-wrapper .phone-input-field:disabled {
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+}
+
+/* Ensure the input container takes full width */
+.phone-input-wrapper > input,
+.phone-input-wrapper > .phone-input-field {
+  flex: 1 !important;
+  min-width: 0 !important;
 }

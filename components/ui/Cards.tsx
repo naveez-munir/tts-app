@@ -88,7 +88,7 @@ export function StepCard({ step, isLast = false }: StepCardProps) {
         <h3 className="mt-4 text-base font-bold text-white sm:text-lg">{step.title}</h3>
 
         {/* Description - flex-grow for equal height */}
-        <p className="mt-2 flex-grow text-justify text-sm leading-relaxed text-white/80">
+        <p className="mt-2 flex-grow text-left text-sm leading-relaxed text-white/80">
           {step.description}
         </p>
       </div>
@@ -112,19 +112,11 @@ export function TestimonialCard({ testimonial }: TestimonialCardProps) {
         <span className="text-primary-600">{getIcon('quote-mark')}</span>
       </div>
 
-      {/* Author Info - Top (Google Review Style) */}
-      <div className="flex items-center gap-3">
-        {/* Avatar */}
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-secondary-900 text-2xl shadow-md">
-          {testimonial.image}
-        </div>
+      {/* Author Name */}
+      <div className="font-semibold text-neutral-900">{testimonial.name}</div>
 
-        {/* Name */}
-        <div className="font-semibold text-neutral-900">{testimonial.name}</div>
-      </div>
-
-      {/* Rating Stars + Role + Location - Second Row */}
-      <div className="mt-3 flex items-center gap-2">
+      {/* Rating Stars + Role + Location */}
+      <div className="mt-2 flex items-center gap-2">
         {/* Stars */}
         <div className="flex gap-0.5">
           {[...Array(testimonial.rating)].map((_, i) => (
@@ -141,8 +133,8 @@ export function TestimonialCard({ testimonial }: TestimonialCardProps) {
       </div>
 
       {/* Quote */}
-      <p className="relative mt-4 text-justify text-sm leading-relaxed text-neutral-700 sm:text-base">
-        &ldquo;{testimonial.quote}&rdquo;
+      <p className="relative mt-4 text-left text-sm leading-relaxed text-neutral-700 sm:text-base">
+        {testimonial.quote}
       </p>
 
       {/* Hover Effect Border */}

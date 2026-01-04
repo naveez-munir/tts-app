@@ -68,9 +68,11 @@ export function getStatusVariant(status: string): BadgeVariant {
     
     // Job statuses
     OPEN: 'info',
+    OPEN_FOR_BIDDING: 'info',
     BIDDING_CLOSED: 'warning',
     NO_BIDS: 'error',
-    
+    NO_BIDS_RECEIVED: 'error',
+
     // Bid statuses
     WON: 'success',
     LOST: 'error',

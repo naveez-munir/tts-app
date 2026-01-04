@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { quoteApi } from '@/lib/api';
 import type { PlacePrediction, GeocodingResult } from '@/lib/types';
@@ -219,17 +220,20 @@ export function AddressAutocomplete({
               key={prediction.placeId}
               onClick={() => handleSelect(prediction)}
               className={cn(
-                'cursor-pointer px-4 py-3 transition-colors',
+                'flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors',
                 index === activeIndex
                   ? 'bg-primary-50 text-primary-700'
                   : 'hover:bg-neutral-50'
               )}
             >
-              <div className="font-medium text-neutral-800">
-                {prediction.mainText}
-              </div>
-              <div className="text-sm text-neutral-500">
-                {prediction.secondaryText}
+              <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-neutral-400" />
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-neutral-800">
+                  {prediction.mainText}
+                </div>
+                <div className="text-sm text-neutral-500">
+                  {prediction.secondaryText}
+                </div>
               </div>
             </li>
           ))}

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { forwardRef, InputHTMLAttributes } from 'react';
+import { forwardRef, InputHTMLAttributes, useMemo } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
@@ -9,10 +9,25 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 /**
  * Reusable input component with theme colors
  * Supports error states, labels, and all standard input props
+ * Automatically prevents past dates for datetime-local inputs
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, error, label, id, ...props }, ref) => {
+  ({ className, error, label, id, type, min, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+
+    // Auto-set min datetime for datetime-local inputs to prevent past dates
+    const minValue = useMemo(() => {
+      if (type === 'datetime-local' && !min) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+      return min;
+    }, [type, min]);
 
     return (
       <div className="w-full">
@@ -27,6 +42,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
+          type={type}
+          min={minValue}
           className={cn(
             'w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-base text-neutral-800 placeholder-neutral-400 transition-all duration-200',
             'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',

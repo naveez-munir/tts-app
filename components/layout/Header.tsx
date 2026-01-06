@@ -41,6 +41,17 @@ export function Header({ variant = 'transparent' }: HeaderProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <header
       className={cn(
@@ -53,11 +64,47 @@ export function Header({ variant = 'transparent' }: HeaderProps) {
       )}
 
       <nav className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between md:h-20">
-          {/* Logo */}
-          <Logo scrolled={showSolid} />
+        <div className="flex h-20 items-center justify-between md:h-24">
+          <div className="flex items-center gap-3">
+            <div className="lg:hidden">
+              <button
+                type="button"
+                className={cn(
+                  'relative inline-flex h-11 w-11 items-center justify-center rounded-lg transition-all duration-200',
+                  showSolid
+                    ? 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                )}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+                aria-expanded={mobileMenuOpen}
+              >
+                <div className="relative h-5 w-5">
+                  <span
+                    className={cn(
+                      'absolute left-0 h-0.5 w-5 rounded-full bg-current transition-all duration-300',
+                      mobileMenuOpen ? 'top-2 rotate-45' : 'top-0'
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      'absolute left-0 top-2 h-0.5 w-5 rounded-full bg-current transition-all duration-300',
+                      mobileMenuOpen ? 'opacity-0' : 'opacity-100'
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      'absolute left-0 h-0.5 w-5 rounded-full bg-current transition-all duration-300',
+                      mobileMenuOpen ? 'top-2 -rotate-45' : 'top-4'
+                    )}
+                  />
+                </div>
+              </button>
+            </div>
 
-          {/* Desktop Navigation */}
+            <Logo scrolled={showSolid} />
+          </div>
+
           <div className="hidden items-center gap-2 lg:flex">
             {NAV_LINKS.map((link) => (
               <NavLink key={link.href} href={link.href} scrolled={showSolid}>
@@ -66,7 +113,6 @@ export function Header({ variant = 'transparent' }: HeaderProps) {
             ))}
           </div>
 
-          {/* Desktop CTA Buttons */}
           <div className="hidden items-center gap-4 lg:flex">
             <Link
               href="/sign-in"
@@ -80,7 +126,7 @@ export function Header({ variant = 'transparent' }: HeaderProps) {
               Sign In
             </Link>
             <Link
-              href="/quote"
+              href="/quote#quote-form"
               className="group inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3 text-base font-bold text-white shadow-lg shadow-accent-500/30 transition-all duration-300 hover:bg-accent-600 hover:shadow-xl hover:shadow-accent-600/40"
             >
               Get Quote
@@ -95,90 +141,89 @@ export function Header({ variant = 'transparent' }: HeaderProps) {
               </svg>
             </Link>
           </div>
-
-          <div className="lg:hidden">
-            <button
-              type="button"
-              className={cn(
-                'relative inline-flex h-11 w-11 items-center justify-center rounded-lg transition-all duration-200',
-                showSolid
-                  ? 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
-                  : 'bg-white/10 text-white hover:bg-white/20'
-              )}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
-              aria-expanded={mobileMenuOpen}
-            >
-              <div className="relative h-5 w-5">
-                <span
-                  className={cn(
-                    'absolute left-0 h-0.5 w-5 rounded-full bg-current transition-all duration-300',
-                    mobileMenuOpen ? 'top-2 rotate-45' : 'top-0'
-                  )}
-                />
-                <span
-                  className={cn(
-                    'absolute left-0 top-2 h-0.5 w-5 rounded-full bg-current transition-all duration-300',
-                    mobileMenuOpen ? 'opacity-0' : 'opacity-100'
-                  )}
-                />
-                <span
-                  className={cn(
-                    'absolute left-0 h-0.5 w-5 rounded-full bg-current transition-all duration-300',
-                    mobileMenuOpen ? 'top-2 -rotate-45' : 'top-4'
-                  )}
-                />
-              </div>
-            </button>
-          </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="fixed inset-0 top-16 z-40 bg-white lg:hidden">
-            <div className="flex h-[calc(100vh-64px)] flex-col px-4 py-8 sm:px-6">
-              <div className="flex flex-col gap-2">
-                {NAV_LINKS.map((link) => (
-                  <NavLink
-                    key={link.href}
-                    href={link.href}
-                    scrolled={true}
-                    mobile
+          <>
+            <div
+              className="fixed inset-0 top-0 z-40 bg-black/50 lg:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+            <div
+              className={cn(
+                'fixed left-0 top-0 z-50 h-full w-72 bg-white shadow-2xl lg:hidden',
+                'transform transition-transform duration-[800ms] ease-in-out',
+                mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+              )}
+            >
+              <div className="flex h-full flex-col">
+                <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-4">
+                  <span className="text-lg font-bold text-neutral-900">Menu</span>
+                  <button
+                    type="button"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100 text-neutral-700 transition-colors hover:bg-neutral-200"
                     onClick={() => setMobileMenuOpen(false)}
+                    aria-label="Close menu"
                   >
-                    {link.label}
-                  </NavLink>
-                ))}
-              </div>
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
 
-              <div className="flex-1" />
+                <div className="flex-1 overflow-y-auto px-4 py-6">
+                  <div className="flex flex-col gap-2">
+                    {NAV_LINKS.map((link) => (
+                      <NavLink
+                        key={link.href}
+                        href={link.href}
+                        scrolled={true}
+                        mobile
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {link.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
 
-              <div className="flex flex-col gap-3">
-                <Link
-                  href="/sign-in"
-                  className="rounded-xl border-2 border-primary-600 px-6 py-3 text-center text-base font-semibold text-primary-600 transition-all duration-200 hover:bg-primary-50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href={CTA_LINKS.GET_QUOTE}
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 text-center text-base font-bold text-white shadow-lg shadow-accent-500/30 transition-all duration-300 hover:bg-accent-600 hover:shadow-xl hover:shadow-accent-600/40"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Get Quote
-                  <svg
-                    className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
+                <div className="border-t border-neutral-200 px-4 py-4">
+                  <div className="flex flex-col gap-3">
+                    <Link
+                      href="/sign-in"
+                      className="rounded-xl border-2 border-primary-600 px-6 py-3 text-center text-base font-semibold text-primary-600 transition-all duration-200 hover:bg-primary-50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href={CTA_LINKS.GET_QUOTE}
+                      className="group inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 text-center text-base font-bold text-white shadow-lg shadow-accent-500/30 transition-all duration-300 hover:bg-accent-600 hover:shadow-xl hover:shadow-accent-600/40"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Get Quote
+                      <svg
+                        className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </nav>
     </header>

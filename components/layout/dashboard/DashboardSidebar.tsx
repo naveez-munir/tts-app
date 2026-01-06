@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X, User, LogOut } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 export interface NavItem {
   href: string;
@@ -16,7 +17,8 @@ export interface DashboardSidebarProps {
   onClose: () => void;
   navItems: NavItem[];
   branding: {
-    icon: LucideIcon;
+    icon?: LucideIcon;
+    logo?: ReactNode;
     title: string;
     href: string;
   };
@@ -40,6 +42,20 @@ export default function DashboardSidebar({
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   const BrandIcon = branding.icon;
+
+  const renderBrandingLogo = () => {
+    if (branding.logo) {
+      return branding.logo;
+    }
+    if (BrandIcon) {
+      return (
+        <div className="w-8 h-8 bg-secondary-500 rounded-lg flex items-center justify-center">
+          <BrandIcon className="w-5 h-5 text-white" />
+        </div>
+      );
+    }
+    return null;
+  };
 
   const isActiveRoute = (href: string) => {
     // For root dashboard routes, only match exactly
@@ -74,9 +90,7 @@ export default function DashboardSidebar({
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-primary-800">
           <Link href={branding.href} className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-secondary-500 rounded-lg flex items-center justify-center">
-              <BrandIcon className="w-5 h-5 text-white" />
-            </div>
+            {renderBrandingLogo()}
             <span className="font-semibold text-lg">{branding.title}</span>
           </Link>
           

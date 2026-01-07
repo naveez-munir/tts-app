@@ -30,14 +30,14 @@ export function ContactCTASection() {
 
             {/* Subtitle */}
             <p className="mt-4 text-lg text-secondary-100 sm:mt-6 sm:text-xl lg:text-2xl">
-              Get an instant quote and experience stress-free airport transfers
+              Get an instant quote and experience stress-free transfers
             </p>
 
             {/* Buttons */}
             <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:flex-row sm:justify-center sm:gap-6">
               {/* Primary Button */}
               <Link
-                href="/quote"
+                href="/quote#quote-form"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:bg-accent-700 hover:shadow-xl sm:px-8 sm:py-4 sm:text-lg"
               >
                 Get Instant Quote

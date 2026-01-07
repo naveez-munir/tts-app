@@ -83,7 +83,7 @@ export function MissionVisionSection({ mission, vision }: MissionVisionSectionPr
             Our Mission & Vision
           </h2>
           <p className="mt-3 text-base text-white/90 sm:mt-4 sm:text-lg">
-            Transforming airport transfers across the UK
+            Transforming travel across the UK
           </p>
         </header>
 

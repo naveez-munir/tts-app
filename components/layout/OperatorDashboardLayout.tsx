@@ -8,6 +8,7 @@ import {
   Wallet,
   User,
   Truck,
+  Users,
 } from 'lucide-react';
 import { DashboardLayout, type NavItem } from './dashboard';
 
@@ -17,6 +18,8 @@ const operatorNavItems: NavItem[] = [
   { href: '/operator/bids', label: 'My Bids', icon: Gavel },
   { href: '/operator/assigned', label: 'Assigned Jobs', icon: CheckCircle },
   { href: '/operator/earnings', label: 'Earnings', icon: Wallet },
+  { href: '/operator/vehicles', label: 'Vehicles', icon: Truck },
+  { href: '/operator/drivers', label: 'Drivers', icon: Users },
   { href: '/operator/profile', label: 'Profile', icon: User },
 ];
 

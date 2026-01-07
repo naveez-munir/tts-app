@@ -6,7 +6,8 @@
 
 interface PageHeroProps {
   title: string;
-  subtitle: string;
+  /** Optional subtitle below title */
+  subtitle?: string;
   /** Optional badge text above title */
   badge?: string;
   children?: React.ReactNode;
@@ -26,8 +27,8 @@ export function PageHero({ title, subtitle, badge, children }: PageHeroProps) {
       {/* Additional accent orb for visual depth */}
       <div className="absolute left-1/2 top-1/2 hidden h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-400/10 blur-3xl md:block" />
 
-      {/* Content Container - Responsive padding */}
-      <div className="container relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-20 lg:px-8 lg:py-28 xl:py-32">
+      {/* Content Container - Responsive padding (includes space for fixed header) */}
+      <div className="container relative mx-auto max-w-7xl px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16 md:pb-20 lg:px-8 lg:pt-28 lg:pb-28 xl:pb-32">
         <div className="mx-auto max-w-3xl text-center">
           {/* Optional Badge */}
           {badge && (
@@ -43,9 +44,11 @@ export function PageHero({ title, subtitle, badge, children }: PageHeroProps) {
           </h1>
 
           {/* Subtitle - Responsive with max-width for readability */}
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-primary-100/90 sm:mt-4 sm:text-base md:mt-5 md:max-w-2xl md:text-lg lg:mt-6 lg:text-xl">
-            {subtitle}
-          </p>
+          {subtitle && (
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-primary-100/90 sm:mt-4 sm:text-base md:mt-5 md:max-w-2xl md:text-lg lg:mt-6 lg:text-xl">
+              {subtitle}
+            </p>
+          )}
         </div>
 
         {/* Optional children (e.g., stats, CTA buttons) - Responsive margin */}

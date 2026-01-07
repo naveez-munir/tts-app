@@ -3,21 +3,27 @@
 import {
   LayoutDashboard,
   Users,
+  UserCircle,
   Calendar,
   Briefcase,
   DollarSign,
   BarChart3,
   Settings,
   Shield,
+  Car,
+  Banknote,
 } from 'lucide-react';
 import { DashboardLayout, type NavItem } from './dashboard';
 
 const adminNavItems: NavItem[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/customers', label: 'Customers', icon: UserCircle },
   { href: '/admin/operators', label: 'Operators', icon: Users },
   { href: '/admin/bookings', label: 'Bookings', icon: Calendar },
   { href: '/admin/jobs', label: 'Jobs', icon: Briefcase },
+  { href: '/admin/payouts', label: 'Payouts', icon: Banknote },
   { href: '/admin/pricing', label: 'Pricing', icon: DollarSign },
+  { href: '/admin/vehicle-capacities', label: 'Vehicles', icon: Car },
   { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
 ];
 
@@ -47,4 +53,3 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     </DashboardLayout>
   );
 }
-

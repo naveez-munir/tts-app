@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  LayoutDashboard,
-  Calendar,
-  User,
-  Car,
-} from 'lucide-react';
+import { LayoutDashboard, Calendar, User, Car } from 'lucide-react';
 import { DashboardLayout, type NavItem } from './dashboard';
 
 const customerNavItems: NavItem[] = [
@@ -31,7 +26,7 @@ export default function CustomerDashboardLayout({
       }}
       topBarTitle="My Dashboard"
       topBarActions={[
-        { label: 'Book New Trip', href: '/quote', variant: 'primary' },
+        { label: 'Book New Trip', href: '/dashboard/book', variant: 'primary' },
       ]}
       showNotifications={true}
     >

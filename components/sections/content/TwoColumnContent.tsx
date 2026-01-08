@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { Building2 } from 'lucide-react';
 
 /**
  * Two Column Content Component
@@ -24,6 +25,7 @@ export function TwoColumnContent({
   backgroundColor = 'white',
 }: TwoColumnContentProps) {
   const bgColor = backgroundColor === 'white' ? 'bg-white' : 'bg-neutral-50';
+  const hasImage = image.src && image.src.length > 0;
 
   return (
     <section className={`${bgColor} py-16 sm:py-20 lg:py-24`}>
@@ -31,14 +33,20 @@ export function TwoColumnContent({
         <div className={`grid gap-12 lg:grid-cols-2 lg:gap-16 ${imagePosition === 'right' ? 'lg:flex-row-reverse' : ''}`}>
           {/* Image */}
           <div className={`relative overflow-hidden rounded-2xl shadow-xl ${imagePosition === 'right' ? 'lg:order-2' : ''}`}>
-            <div className="aspect-[4/3] bg-neutral-200">
-              <Image
-                src={image.src}
-                alt={image.alt}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
+            <div className="aspect-[4/3] bg-gradient-to-br from-primary-100 to-primary-200">
+              {hasImage ? (
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <Building2 className="h-24 w-24 text-primary-400" aria-hidden="true" />
+                </div>
+              )}
             </div>
           </div>
 

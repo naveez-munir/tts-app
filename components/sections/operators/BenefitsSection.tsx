@@ -45,7 +45,7 @@ export function BenefitsSection({ title, subtitle, items }: BenefitsSectionProps
                 </h3>
 
                 {/* Description */}
-                <p className="text-justify text-base leading-relaxed text-neutral-600 sm:text-lg">
+                <p className="text-left text-base leading-relaxed text-neutral-600 sm:text-lg">
                   {benefit.description}
                 </p>
             </div>

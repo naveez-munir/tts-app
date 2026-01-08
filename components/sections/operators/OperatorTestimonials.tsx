@@ -48,7 +48,7 @@ export function OperatorTestimonials({ testimonials }: OperatorTestimonialsProps
               </div>
 
               {/* Quote */}
-              <p className="relative mt-4 flex-grow text-justify text-sm leading-relaxed text-neutral-700 sm:text-base">
+              <p className="relative mt-4 flex-grow text-left text-sm leading-relaxed text-neutral-700 sm:text-base">
                 &ldquo;{testimonial.quote}&rdquo;
               </p>
 

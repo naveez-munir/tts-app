@@ -41,7 +41,7 @@ export function EarningsSection({ title, subtitle, description, highlights }: Ea
             <p className="mt-4 text-lg text-primary-100 sm:text-xl">{subtitle}</p>
 
             {/* Description */}
-            <p className="mt-6 text-justify text-base leading-relaxed text-primary-100 sm:text-lg">{description}</p>
+            <p className="mt-6 text-left text-base leading-relaxed text-primary-100 sm:text-lg">{description}</p>
 
             {/* CTA Button */}
             <div className="mt-8">
@@ -68,16 +68,6 @@ export function EarningsSection({ title, subtitle, description, highlights }: Ea
                 </li>
               ))}
             </ul>
-
-            {/* Earnings Example Box */}
-            <div className="mt-8 rounded-xl border border-white/20 bg-white/5 p-6">
-              <p className="text-sm font-medium uppercase tracking-wide text-primary-200">Example Earnings</p>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-white sm:text-5xl">£2,500</span>
-                <span className="text-lg text-primary-200">- £5,000+</span>
-              </div>
-              <p className="mt-2 text-sm text-primary-200">Average monthly earnings for full-time operators</p>
-            </div>
           </div>
         </div>
       </div>

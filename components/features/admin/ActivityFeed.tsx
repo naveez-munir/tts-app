@@ -20,42 +20,43 @@ interface ActivityFeedProps {
 }
 
 const activityConfig: Record<ActivityType, { icon: typeof Calendar; color: string }> = {
-  booking: { icon: Calendar, color: 'bg-info-100 text-info-600' },
-  operator: { icon: Users, color: 'bg-secondary-100 text-secondary-600' },
-  job: { icon: Briefcase, color: 'bg-warning-100 text-warning-600' },
-  payment: { icon: DollarSign, color: 'bg-success-100 text-success-600' },
+  booking: { icon: Calendar, color: 'bg-info-50 text-info-600' },
+  operator: { icon: Users, color: 'bg-secondary-50 text-secondary-600' },
+  job: { icon: Briefcase, color: 'bg-warning-50 text-warning-600' },
+  payment: { icon: DollarSign, color: 'bg-success-50 text-success-600' },
 };
 
 export function ActivityFeed({ activities, className }: ActivityFeedProps) {
   if (activities.length === 0) {
     return (
-      <div className={cn('bg-white rounded-xl p-6 shadow-sm border border-neutral-200', className)}>
-        <h2 className="text-lg font-semibold text-neutral-900 mb-4">Recent Activity</h2>
-        <p className="text-neutral-500 text-center py-8">No recent activity</p>
+      <div className={cn('bg-white rounded-xl p-4 shadow-sm border border-neutral-200', className)}>
+        <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">Recent Activity</h2>
+        <p className="text-neutral-500 text-center text-sm py-6">No recent activity</p>
       </div>
     );
   }
 
   return (
-    <div className={cn('bg-white rounded-xl p-6 shadow-sm border border-neutral-200', className)}>
-      <h2 className="text-lg font-semibold text-neutral-900 mb-4">Recent Activity</h2>
-      
-      <div className="space-y-4">
+    <div className={cn('bg-white rounded-xl p-4 shadow-sm border border-neutral-200', className)}>
+      <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">Recent Activity</h2>
+
+      <div className="space-y-3">
         {activities.map((activity) => {
           const config = activityConfig[activity.type];
           const Icon = config.icon;
-          
+
           return (
-            <div key={activity.id} className="flex gap-3">
-              <div className={cn('p-2 rounded-lg flex-shrink-0', config.color)}>
-                <Icon className="w-4 h-4" />
+            <div key={activity.id} className="flex gap-2.5">
+              <div className={cn('p-1.5 rounded-md flex-shrink-0', config.color)}>
+                <Icon className="w-3.5 h-3.5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-neutral-900 truncate">{activity.title}</p>
-                <p className="text-sm text-neutral-600 truncate">{activity.description}</p>
-                <p className="text-xs text-neutral-400 mt-1">
-                  {formatDistanceToNow(activity.timestamp)}
-                </p>
+                <p className="text-sm font-medium text-neutral-900 truncate">{activity.title}</p>
+                <div className="flex items-center gap-2 text-xs text-neutral-500">
+                  <span className="truncate">{activity.description}</span>
+                  <span>•</span>
+                  <span className="flex-shrink-0">{formatDistanceToNow(activity.timestamp)}</span>
+                </div>
               </div>
             </div>
           );

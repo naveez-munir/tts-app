@@ -53,13 +53,13 @@ export function AlertsSection({
 
   if (activeAlerts.length === 0) {
     return (
-      <div className={cn('bg-white rounded-xl p-6 shadow-sm border border-neutral-200', className)}>
-        <h2 className="text-lg font-semibold text-neutral-900 mb-4">Alerts</h2>
-        <div className="flex items-center gap-3 p-4 bg-success-50 rounded-lg">
-          <div className="w-8 h-8 bg-success-100 rounded-full flex items-center justify-center">
-            <span className="text-success-600">✓</span>
+      <div className={cn('bg-white rounded-xl p-4 shadow-sm border border-neutral-200', className)}>
+        <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">Alerts</h2>
+        <div className="flex items-center gap-2.5 p-3 bg-success-50 rounded-lg">
+          <div className="w-7 h-7 bg-success-100 rounded-full flex items-center justify-center">
+            <span className="text-success-600 text-sm">✓</span>
           </div>
-          <p className="text-success-700 font-medium">No alerts - everything is running smoothly!</p>
+          <p className="text-success-700 text-sm font-medium">All clear - no alerts!</p>
         </div>
       </div>
     );
@@ -77,33 +77,33 @@ export function AlertsSection({
   };
 
   return (
-    <div className={cn('bg-white rounded-xl p-6 shadow-sm border border-neutral-200', className)}>
-      <h2 className="text-lg font-semibold text-neutral-900 mb-4">
+    <div className={cn('bg-white rounded-xl p-4 shadow-sm border border-neutral-200', className)}>
+      <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-3">
         Alerts <span className="text-error-600">({activeAlerts.length})</span>
       </h2>
-      
-      <div className="space-y-3">
+
+      <div className="space-y-2">
         {activeAlerts.map((alert) => {
           const style = getAlertStyle(alert.type);
           const Icon = style.icon;
-          
+
           return (
             <Link
               key={alert.id}
               href={alert.href}
               className={cn(
-                'flex items-center justify-between p-4 rounded-lg transition-colors hover:opacity-80',
+                'flex items-center justify-between p-3 rounded-lg transition-colors hover:opacity-80',
                 style.bg
               )}
             >
-              <div className="flex items-center gap-3">
-                <Icon className={cn('w-5 h-5', style.iconColor)} />
+              <div className="flex items-center gap-2.5">
+                <Icon className={cn('w-4 h-4', style.iconColor)} />
                 <div>
-                  <p className="font-medium text-neutral-900">{alert.title}</p>
-                  <p className="text-sm text-neutral-600">{alert.count} requiring attention</p>
+                  <p className="text-sm font-medium text-neutral-900">{alert.title}</p>
+                  <p className="text-xs text-neutral-600">{alert.count} requiring attention</p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-neutral-400" />
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
             </Link>
           );
         })}

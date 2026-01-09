@@ -16,7 +16,7 @@ export function TestimonialsSection() {
           </p>
         </div>
 
-        {/* Testimonials Grid */}
+        {/* Testimonials Grid - auto-fit ensures cards have minimum width for readable text */}
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3 lg:gap-8">
           {TESTIMONIALS.map((testimonial, index) => (
             <TestimonialCard key={index} testimonial={testimonial} />

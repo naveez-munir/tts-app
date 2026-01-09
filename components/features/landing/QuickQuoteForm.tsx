@@ -5,13 +5,17 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { AddressAutocomplete, AddressValue } from '@/components/ui/AddressAutocomplete';
+import { DateTimePicker } from '@/components/ui/DateTimePicker';
 
 const VEHICLE_OPTIONS = [
   { value: 'SALOON', label: 'Saloon (1-4 passengers)' },
   { value: 'ESTATE', label: 'Estate (1-4 passengers)' },
-  { value: 'MPV', label: 'MPV (5-6 passengers)' },
+  { value: 'GREEN_CAR', label: 'Green Car - Electric (1-4 passengers)' },
+  { value: 'MPV', label: 'People Carrier (5-6 passengers)' },
   { value: 'EXECUTIVE', label: 'Executive (1-4 passengers)' },
-  { value: 'MINIBUS', label: 'Minibus (7-16 passengers)' },
+  { value: 'EXECUTIVE_LUXURY', label: 'Executive Luxury (1-3 passengers)' },
+  { value: 'EXECUTIVE_PEOPLE_CARRIER', label: 'Executive People Carrier (5-6 passengers)' },
+  { value: 'MINIBUS', label: '8-Seater Minibus (1-8 passengers)' },
 ] as const;
 
 interface LocationData {
@@ -41,8 +45,8 @@ export function QuickQuoteForm() {
   const [journeyType, setJourneyType] = useState<'one-way' | 'return'>('one-way');
   const [pickup, setPickup] = useState<LocationData>(emptyLocation);
   const [dropoff, setDropoff] = useState<LocationData>(emptyLocation);
-  const [pickupDatetime, setPickupDatetime] = useState('');
-  const [returnDatetime, setReturnDatetime] = useState('');
+  const [pickupDatetime, setPickupDatetime] = useState<Date | null>(null);
+  const [returnDatetime, setReturnDatetime] = useState<Date | null>(null);
   const [vehicleType, setVehicleType] = useState('SALOON');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -83,17 +87,14 @@ export function QuickQuoteForm() {
     if (!pickupDatetime) {
       newErrors.pickupDatetime = 'Please select pickup date & time';
     } else {
-      const pickupDate = new Date(pickupDatetime);
-      if (pickupDate <= new Date()) {
+      if (pickupDatetime <= new Date()) {
         newErrors.pickupDatetime = 'Pickup must be in the future';
       }
     }
-    if (journeyType === 'return' && !returnDatetime) {
-      newErrors.returnDatetime = 'Please select return date & time';
-    } else if (journeyType === 'return' && returnDatetime) {
-      const returnDate = new Date(returnDatetime);
-      const pickupDate = new Date(pickupDatetime);
-      if (returnDate <= pickupDate) {
+    if (journeyType === 'return') {
+      if (!returnDatetime) {
+        newErrors.returnDatetime = 'Please select return date & time';
+      } else if (pickupDatetime && returnDatetime <= pickupDatetime) {
         newErrors.returnDatetime = 'Return must be after pickup';
       }
     }
@@ -121,12 +122,12 @@ export function QuickQuoteForm() {
       dropoffLat: dropoff.lat?.toString() || '',
       dropoffLng: dropoff.lng?.toString() || '',
       dropoffPlaceId: dropoff.placeId,
-      pickupDatetime,
+      pickupDatetime: pickupDatetime?.toISOString() || '',
       vehicleType,
     });
 
-    if (journeyType === 'return') {
-      params.set('returnDatetime', returnDatetime);
+    if (journeyType === 'return' && returnDatetime) {
+      params.set('returnDatetime', returnDatetime.toISOString());
     }
 
     router.push(`/quote?${params.toString()}`);
@@ -143,8 +144,8 @@ export function QuickQuoteForm() {
         <div className="space-y-4 sm:space-y-5 lg:space-y-6">
           {/* Header */}
           <div className="space-y-1 sm:space-y-2">
-            <h3 className="text-xl font-black text-white sm:text-2xl">Get Instant Quote</h3>
-            <p className="text-xs text-primary-100 sm:text-sm">Enter your journey details below</p>
+            <h3 className="text-xl font-black text-white sm:text-2xl">Looking for a reliable taxi in the UK?</h3>
+            <p className="text-xs text-primary-100 sm:text-sm">Get your instant quote and book to travel</p>
           </div>
 
           {/* Form */}
@@ -200,36 +201,30 @@ export function QuickQuoteForm() {
             </div>
 
             {/* Pickup Date & Time */}
-            <div>
-              <Input
-                type="datetime-local"
-                value={pickupDatetime}
-                onChange={(e) => {
-                  setPickupDatetime(e.target.value);
-                  setErrors((prev) => ({ ...prev, pickupDatetime: '' }));
-                }}
-                className="bg-white/90 text-neutral-800"
-                error={errors.pickupDatetime}
-              />
-            </div>
+            <DateTimePicker
+              value={pickupDatetime}
+              onChange={(date) => {
+                setPickupDatetime(date);
+                setErrors((prev) => ({ ...prev, pickupDatetime: '' }));
+              }}
+              error={errors.pickupDatetime}
+              placeholder="dd/mm/yyyy, hh:mm AM/PM"
+              inputClassName="bg-white/90 text-neutral-800 placeholder-neutral-500"
+            />
 
             {/* Return Date & Time (conditional) */}
             {journeyType === 'return' && (
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-white/80">
-                  Return Date & Time
-                </label>
-                <Input
-                  type="datetime-local"
-                  value={returnDatetime}
-                  onChange={(e) => {
-                    setReturnDatetime(e.target.value);
-                    setErrors((prev) => ({ ...prev, returnDatetime: '' }));
-                  }}
-                  className="bg-white/90 text-neutral-800"
-                  error={errors.returnDatetime}
-                />
-              </div>
+              <DateTimePicker
+                value={returnDatetime}
+                onChange={(date) => {
+                  setReturnDatetime(date);
+                  setErrors((prev) => ({ ...prev, returnDatetime: '' }));
+                }}
+                error={errors.returnDatetime}
+                placeholder="dd/mm/yyyy, hh:mm AM/PM"
+                minDate={pickupDatetime || new Date()}
+                inputClassName="bg-white/90 text-neutral-800 placeholder-neutral-500"
+              />
             )}
 
             {/* Vehicle Type */}

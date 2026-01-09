@@ -30,7 +30,7 @@ export function HowItWorksSection() {
         </header>
 
         {/* Steps Grid - Equal height cards with connecting lines on desktop */}
-        <div className="mt-10 grid gap-6 overflow-visible sm:mt-12 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4 lg:gap-8">
+        <div className="mt-10 grid gap-6 overflow-visible sm:mt-12 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4 lg:gap-6 xl:gap-8">
           {HOW_IT_WORKS_STEPS.map((step, index) => (
             <StepCard
               key={index}

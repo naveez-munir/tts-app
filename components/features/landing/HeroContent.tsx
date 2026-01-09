@@ -31,12 +31,12 @@ export function HeroContent() {
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400 opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-400" />
         </span>
-        <span className="text-xs font-semibold text-white sm:text-sm">UK&apos;s Leading Transfer Platform</span>
+        <span className="text-xs font-semibold text-white sm:text-sm">UK&apos;s Leading Booking Platform</span>
       </div>
 
       {/* Main Heading - Unified block for visual grouping */}
       <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-        <span className="block text-white">Airport Transfers</span>
+        <span className="block text-white">Transfers</span>
         <span className="block bg-gradient-to-r from-accent-300 via-accent-400 to-accent-500 bg-clip-text text-transparent">
           Made Simple
         </span>
@@ -44,29 +44,29 @@ export function HeroContent() {
 
       {/* Subheading - Constrained line length for readability */}
       <p className="mx-auto max-w-md text-sm leading-relaxed text-primary-100 sm:max-w-lg sm:text-base lg:mx-0 lg:max-w-xl lg:text-lg">
-        Book reliable airport transfers across the UK.{' '}
+        Book reliable transfers across the UK.{' '}
         <span className="font-semibold text-white">Best prices guaranteed</span>, professional service, hassle-free booking.
       </p>
 
       {/* Trust Indicators */}
       <TrustIndicators />
 
-      {/* Secondary CTA - Subtle scroll prompt (hidden on mobile as form is visible) */}
+      {/* Secondary CTA - Scroll prompt (hidden on mobile as form is visible) */}
       <div className="hidden pt-2 sm:block lg:pt-4">
         <button
           onClick={handleScrollToHowItWorks}
-          className="group inline-flex min-h-[44px] items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 sm:text-base"
+          className="group inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 sm:text-base"
         >
           <span>See how it works</span>
           <svg
-            className="h-4 w-4 transition-transform group-hover:translate-y-0.5"
+            className="h-5 w-5 transition-transform group-hover:translate-y-0.5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={2}
             aria-hidden="true"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </button>
       </div>

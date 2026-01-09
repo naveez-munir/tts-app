@@ -40,6 +40,7 @@ export function SignInForm() {
         router.push('/admin');
       }
     } catch (error: any) {
+      // Handle Zod validation errors
       if (error.issues) {
         const fieldErrors: any = {};
         error.issues.forEach((issue: any) => {
@@ -47,9 +48,17 @@ export function SignInForm() {
           fieldErrors[field] = issue.message;
         });
         setErrors(fieldErrors);
-      } else if (error.error) {
-        setErrors({ general: error.error.message || 'Invalid email or password' });
-      } else {
+      }
+      // Handle API errors (AxiosError)
+      else if (error.response?.data?.error) {
+        setErrors({ general: error.response.data.error.message || 'Invalid email or password' });
+      }
+      // Handle network errors
+      else if (error.error) {
+        setErrors({ general: error.error.message || 'Unable to connect to the server' });
+      }
+      // Fallback
+      else {
         setErrors({ general: 'An unexpected error occurred. Please try again.' });
       }
     } finally {
@@ -144,7 +153,7 @@ export function SignInForm() {
       <div className="grid gap-3 sm:grid-cols-2">
         {/* Customer Option */}
         <Link
-          href="/quote"
+          href="/quote#quote-form"
           className="group flex flex-col items-center rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-center transition-all hover:border-primary-300 hover:bg-primary-50"
         >
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-600 transition-colors group-hover:bg-primary-200">

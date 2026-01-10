@@ -110,6 +110,16 @@ export const iconMap = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
     </svg>
   ),
+  'user-male': (
+    <svg className="h-full w-full" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+    </svg>
+  ),
+  'user-female': (
+    <svg className="h-full w-full" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 2C9.24 2 7 4.24 7 7c0 1.53.71 2.91 1.82 3.82C6.22 11.9 4 14.12 4 17v3h16v-3c0-2.88-2.22-5.1-4.82-6.18C16.29 9.91 17 8.53 17 7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 8c2.67 0 8 1.34 8 4v1H4v-1c0-2.66 5.33-4 8-4z" />
+    </svg>
+  ),
   check: (
     <svg className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

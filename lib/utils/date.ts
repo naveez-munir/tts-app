@@ -75,10 +75,43 @@ export function formatDateTime(dateString: string): string {
 /**
  * Format currency in GBP
  */
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | string): string {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
   return new Intl.NumberFormat('en-GB', {
     style: 'currency',
     currency: 'GBP',
-  }).format(amount);
+  }).format(numAmount);
+}
+
+/**
+ * Format time remaining until a future date
+ * e.g., "2 hours remaining", "30 minutes remaining", "Ended"
+ */
+export function formatTimeRemaining(dateString: string): string {
+  const targetDate = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((targetDate.getTime() - now.getTime()) / 1000);
+
+  // Already passed
+  if (diffInSeconds <= 0) {
+    return 'Ended';
+  }
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 1) {
+    return 'Less than 1 minute remaining';
+  }
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} remaining`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} remaining`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays} day${diffInDays === 1 ? '' : 's'} remaining`;
 }
 

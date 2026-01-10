@@ -28,7 +28,7 @@ export function WhyChooseUsSection({ features }: WhyChooseUsSectionProps) {
             Why Choose Total Travel Solution?
           </h2>
           <p className="mt-4 text-lg text-white/90 sm:text-xl">
-            The smart way to book airport transfers across the UK
+            The smart way to book transfers across the UK
           </p>
         </div>
 

@@ -1,20 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Users, Briefcase, Check, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
+import { PhoneInput, isValidPhoneNumber } from '@/components/ui/PhoneInput';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { AddressAutocomplete, AddressValue } from '@/components/ui/AddressAutocomplete';
+import { DateTimePicker } from '@/components/ui/DateTimePicker';
+import { RouteMapPreview } from '@/components/ui/RouteMapPreview';
+import { MultiStopInput, StopData } from '@/components/ui/MultiStopInput';
+import { getVehicleIcon } from '@/components/ui/VehicleIcons';
 import {
-  VEHICLE_TYPES,
+  VEHICLE_TYPES as FALLBACK_VEHICLE_TYPES,
   SERVICE_TYPES,
   PASSENGER_OPTIONS,
   LUGGAGE_OPTIONS,
 } from '@/lib/data/quote.data';
-import { calculateSingleQuote, calculateReturnQuote } from '@/lib/api/quote.api';
-import { VehicleType } from '@/lib/types/enums';
-import type { SingleJourneyQuote, ReturnJourneyQuote } from '@/lib/types/quote.types';
+import type { VehicleType as VehicleTypeData } from '@/types/landing.types';
+import { calculateSingleQuote, calculateReturnQuote, calculateAllVehiclesQuote } from '@/lib/api/quote.api';
+import { getContextualErrorMessage } from '@/lib/utils/error-handler';
+import { VehicleType, ServiceType } from '@/lib/types/enums';
+import { getFlippedServiceType } from '@/lib/utils/service-type';
+import type { SingleJourneyQuote, ReturnJourneyQuote, VehicleQuoteItem } from '@/lib/types/quote.types';
+import type { User } from '@/lib/types/auth.types';
 
 interface LocationData {
   text: string;
@@ -34,48 +44,69 @@ const emptyLocation: LocationData = {
   placeId: '',
 };
 
-/**
- * Quote Form Section Component
- * Multi-step form for getting a transfer quote
- */
-export function QuoteFormSection() {
+interface QuoteFormSectionProps {
+  resultUrl?: string;
+  user?: User | null; // Logged-in user - will auto-fill contact details and skip step 4
+  vehicleTypes?: VehicleTypeData[]; // Dynamic vehicle types from API (optional, falls back to static)
+}
+
+export function QuoteFormSection({ resultUrl = '/quote/result', user, vehicleTypes }: QuoteFormSectionProps) {
+  // Use provided vehicle types or fall back to static data
+  const VEHICLE_TYPES = vehicleTypes && vehicleTypes.length > 0 ? vehicleTypes : FALLBACK_VEHICLE_TYPES;
   const searchParams = useSearchParams();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [vehicleQuotes, setVehicleQuotes] = useState<VehicleQuoteItem[]>([]);
+  const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
 
-  // Journey type
   const [journeyType, setJourneyType] = useState<'one-way' | 'return'>('one-way');
 
   // Location data (with geocoding info)
   const [pickup, setPickup] = useState<LocationData>(emptyLocation);
   const [dropoff, setDropoff] = useState<LocationData>(emptyLocation);
+  const [stops, setStops] = useState<StopData[]>([]);
 
   // Form fields
   const [formData, setFormData] = useState({
     serviceType: 'AIRPORT_PICKUP',
-    pickupDatetime: '',
-    returnDatetime: '',
     flightNumber: '',
     passengers: '1',
     luggage: '2',
     vehicleType: 'SALOON',
-    // Special requirements
     childSeats: '0',
+    boosterSeats: '0',
     wheelchairAccess: false,
     pets: false,
     meetAndGreet: false,
     specialNotes: '',
-    // Contact Details
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
   });
 
+  const [pickupDatetime, setPickupDatetime] = useState<Date | null>(null);
+  const [returnDatetime, setReturnDatetime] = useState<Date | null>(null);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const totalSteps = 4;
+
+  // If user is logged in, skip step 4 (contact details)
+  const totalSteps = user ? 3 : 4;
+
+  // Auto-fill contact details for logged-in users
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phoneNumber || '',
+      }));
+    }
+  }, [user]);
 
   // Pre-fill form from URL params (coming from hero form)
   useEffect(() => {
@@ -118,17 +149,64 @@ export function QuoteFormSection() {
       });
     }
 
-    const pickupDatetime = searchParams.get('pickupDatetime');
-    const returnDatetime = searchParams.get('returnDatetime');
+    const pickupDatetimeParam = searchParams.get('pickupDatetime');
+    const returnDatetimeParam = searchParams.get('returnDatetime');
     const vehicleType = searchParams.get('vehicleType');
+
+    if (pickupDatetimeParam) {
+      setPickupDatetime(new Date(pickupDatetimeParam));
+    }
+    if (returnDatetimeParam) {
+      setReturnDatetime(new Date(returnDatetimeParam));
+    }
 
     setFormData((prev) => ({
       ...prev,
-      pickupDatetime: pickupDatetime || '',
-      returnDatetime: returnDatetime || '',
       vehicleType: vehicleType || 'SALOON',
     }));
   }, [searchParams]);
+
+  // Memoize stopsForApi to prevent infinite re-renders in useEffect
+  const stopsForApi = useMemo(
+    () =>
+      stops
+        .filter((s) => s.lat && s.lng)
+        .map((s) => ({ address: s.address, lat: s.lat!, lng: s.lng!, postcode: s.postcode || undefined })),
+    [stops]
+  );
+
+  useEffect(() => {
+    if (currentStep === 3 && pickup.lat && pickup.lng && dropoff.lat && dropoff.lng && pickupDatetime) {
+      const fetchVehicleQuotes = async () => {
+        setIsLoadingQuotes(true);
+        try {
+          const result = await calculateAllVehiclesQuote({
+            pickupLat: pickup.lat!,
+            pickupLng: pickup.lng!,
+            dropoffLat: dropoff.lat!,
+            dropoffLng: dropoff.lng!,
+            pickupDatetime: pickupDatetime.toISOString(),
+            isReturnJourney: journeyType === 'return',
+            returnDatetime: returnDatetime?.toISOString(),
+            meetAndGreet: formData.meetAndGreet,
+            childSeats: parseInt(formData.childSeats) || 0,
+            boosterSeats: parseInt(formData.boosterSeats) || 0,
+            stops: stopsForApi,
+            passengers: parseInt(formData.passengers),
+            luggage: parseInt(formData.luggage),
+          });
+          setVehicleQuotes(result.vehicleQuotes);
+        } catch (error) {
+          console.error('Failed to fetch vehicle quotes:', error);
+          setVehicleQuotes([]);
+        } finally {
+          setIsLoadingQuotes(false);
+        }
+      };
+
+      fetchVehicleQuotes();
+    }
+  }, [currentStep, pickup.lat, pickup.lng, dropoff.lat, dropoff.lng, pickupDatetime, returnDatetime, journeyType, formData.meetAndGreet, formData.childSeats, formData.boosterSeats, stopsForApi, formData.passengers, formData.luggage]);
 
   const handlePickupSelect = (address: AddressValue) => {
     setPickup({
@@ -154,6 +232,53 @@ export function QuoteFormSection() {
     setErrors((prev) => ({ ...prev, dropoff: '' }));
   };
 
+  // Find first available vehicle that can accommodate passengers and luggage
+  const getFirstAvailableVehicle = (passengers: number, luggage: number): string => {
+    const available = VEHICLE_TYPES.find(
+      (v) => passengers <= v.maxPassengers && luggage <= v.maxLuggage
+    );
+    return available?.value || 'SALOON';
+  };
+
+  // Handle passenger/luggage change with auto-select
+  const handlePassengerChange = (newPassengers: string) => {
+    const passengers = parseInt(newPassengers);
+    const luggage = parseInt(formData.luggage);
+    const currentVehicle = VEHICLE_TYPES.find((v) => v.value === formData.vehicleType);
+
+    // Check if current vehicle can still accommodate
+    const isCurrentValid = currentVehicle &&
+      passengers <= currentVehicle.maxPassengers &&
+      luggage <= currentVehicle.maxLuggage;
+
+    if (isCurrentValid) {
+      setFormData({ ...formData, passengers: newPassengers });
+    } else {
+      // Auto-select first available vehicle
+      const newVehicle = getFirstAvailableVehicle(passengers, luggage);
+      setFormData({ ...formData, passengers: newPassengers, vehicleType: newVehicle });
+    }
+  };
+
+  const handleLuggageChange = (newLuggage: string) => {
+    const passengers = parseInt(formData.passengers);
+    const luggage = parseInt(newLuggage);
+    const currentVehicle = VEHICLE_TYPES.find((v) => v.value === formData.vehicleType);
+
+    // Check if current vehicle can still accommodate
+    const isCurrentValid = currentVehicle &&
+      passengers <= currentVehicle.maxPassengers &&
+      luggage <= currentVehicle.maxLuggage;
+
+    if (isCurrentValid) {
+      setFormData({ ...formData, luggage: newLuggage });
+    } else {
+      // Auto-select first available vehicle
+      const newVehicle = getFirstAvailableVehicle(passengers, luggage);
+      setFormData({ ...formData, luggage: newLuggage, vehicleType: newVehicle });
+    }
+  };
+
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -164,23 +289,33 @@ export function QuoteFormSection() {
       if (!dropoff.lat || !dropoff.lng) {
         newErrors.dropoff = 'Please select a drop-off location';
       }
-      if (!formData.pickupDatetime) {
+      if (!pickupDatetime) {
         newErrors.pickupDatetime = 'Pickup date & time is required';
       } else {
-        const pickupDate = new Date(formData.pickupDatetime);
-        if (pickupDate <= new Date()) {
+        if (pickupDatetime <= new Date()) {
           newErrors.pickupDatetime = 'Pickup must be in the future';
         }
       }
       if (journeyType === 'return') {
-        if (!formData.returnDatetime) {
+        if (!returnDatetime) {
           newErrors.returnDatetime = 'Return date & time is required';
-        } else {
-          const returnDate = new Date(formData.returnDatetime);
-          const pickupDate = new Date(formData.pickupDatetime);
-          if (returnDate <= pickupDate) {
-            newErrors.returnDatetime = 'Return must be after pickup';
-          }
+        } else if (pickupDatetime && returnDatetime <= pickupDatetime) {
+          newErrors.returnDatetime = 'Return must be after pickup';
+        }
+      }
+      if (formData.serviceType === 'AIRPORT_PICKUP' && !formData.flightNumber.trim()) {
+        newErrors.flightNumber = 'Flight number is required for airport pickup';
+      }
+    }
+
+    if (step === 3) {
+      const selectedVehicle = VEHICLE_TYPES.find(v => v.value === formData.vehicleType);
+      const passengerCount = parseInt(formData.passengers);
+      const luggageCount = parseInt(formData.luggage);
+
+      if (selectedVehicle) {
+        if (passengerCount > selectedVehicle.maxPassengers || luggageCount > selectedVehicle.maxLuggage) {
+          newErrors.vehicleType = 'Please select a vehicle that can accommodate your passengers and luggage';
         }
       }
     }
@@ -191,19 +326,26 @@ export function QuoteFormSection() {
       if (!formData.email) newErrors.email = 'Email is required';
       else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
       if (!formData.phone) newErrors.phone = 'Phone number is required';
+      else if (!isValidPhoneNumber(formData.phone)) newErrors.phone = 'Please enter a valid phone number';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (validateStep(currentStep)) {
+      // Clear errors before moving to next step to ensure clean slate
+      setErrors({});
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
   };
 
   const handleBack = () => {
+    // Clear errors when going back to previous step
+    setErrors({});
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
@@ -216,24 +358,29 @@ export function QuoteFormSection() {
 
     try {
       const vehicleType = formData.vehicleType as VehicleType;
-      const pickupDatetime = new Date(formData.pickupDatetime).toISOString();
+      const pickupDatetimeISO = pickupDatetime!.toISOString();
 
       let quoteResult: SingleJourneyQuote | ReturnJourneyQuote;
 
+      const childSeatsCount = parseInt(formData.childSeats) || 0;
+      const boosterSeatsCount = parseInt(formData.boosterSeats) || 0;
+
       if (journeyType === 'one-way') {
-        // Single journey quote
         quoteResult = await calculateSingleQuote({
           pickupLat: pickup.lat!,
           pickupLng: pickup.lng!,
           dropoffLat: dropoff.lat!,
           dropoffLng: dropoff.lng!,
           vehicleType,
-          pickupDatetime,
+          pickupDatetime: pickupDatetimeISO,
+          serviceType: formData.serviceType as ServiceType,
           meetAndGreet: formData.meetAndGreet,
+          childSeats: childSeatsCount,
+          boosterSeats: boosterSeatsCount,
+          stops: stopsForApi,
         });
       } else {
-        // Return journey quote
-        const returnDatetime = new Date(formData.returnDatetime).toISOString();
+        const returnDatetimeISO = returnDatetime!.toISOString();
         quoteResult = await calculateReturnQuote({
           outbound: {
             pickupLat: pickup.lat!,
@@ -241,23 +388,28 @@ export function QuoteFormSection() {
             dropoffLat: dropoff.lat!,
             dropoffLng: dropoff.lng!,
             vehicleType,
-            pickupDatetime,
+            pickupDatetime: pickupDatetimeISO,
+            serviceType: formData.serviceType as ServiceType,
             meetAndGreet: formData.meetAndGreet,
+            childSeats: childSeatsCount,
+            boosterSeats: boosterSeatsCount,
+            stops: stopsForApi,
           },
           returnJourney: {
-            // Swap pickup and dropoff for return
             pickupLat: dropoff.lat!,
             pickupLng: dropoff.lng!,
             dropoffLat: pickup.lat!,
             dropoffLng: pickup.lng!,
             vehicleType,
-            pickupDatetime: returnDatetime,
+            pickupDatetime: returnDatetimeISO,
+            serviceType: getFlippedServiceType(formData.serviceType as ServiceType),
             meetAndGreet: false,
+            childSeats: childSeatsCount,
+            boosterSeats: boosterSeatsCount,
           },
         });
       }
 
-      // Build complete booking data to store in sessionStorage
       const bookingData = {
         journeyType,
         pickup: {
@@ -272,14 +424,16 @@ export function QuoteFormSection() {
           lat: dropoff.lat,
           lng: dropoff.lng,
         },
+        stops: stopsForApi,
         serviceType: formData.serviceType,
-        pickupDatetime: formData.pickupDatetime,
-        returnDatetime: formData.returnDatetime,
+        pickupDatetime: pickupDatetime?.toISOString() || '',
+        returnDatetime: returnDatetime?.toISOString() || '',
         flightNumber: formData.flightNumber,
         passengers: parseInt(formData.passengers),
         luggage: parseInt(formData.luggage),
         vehicleType: formData.vehicleType,
         childSeats: parseInt(formData.childSeats),
+        boosterSeats: parseInt(formData.boosterSeats),
         wheelchairAccess: formData.wheelchairAccess,
         pets: formData.pets,
         meetAndGreet: formData.meetAndGreet,
@@ -296,22 +450,18 @@ export function QuoteFormSection() {
       // Store in sessionStorage for the result page
       sessionStorage.setItem('quoteData', JSON.stringify(bookingData));
 
-      // Redirect to quote result page
-      router.push('/quote/result');
-    } catch (error) {
+      router.push(resultUrl);
+    } catch (error: unknown) {
       console.error('Quote calculation failed:', error);
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to calculate quote. Please try again.'
-      );
+      const errorMessage = getContextualErrorMessage(error, 'submit');
+      setSubmitError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="w-full max-w-4xl">
+    <div className="w-full max-w-7xl">
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -405,6 +555,12 @@ export function QuoteFormSection() {
               error={errors.pickup}
             />
 
+            <MultiStopInput
+              stops={stops}
+              onChange={setStops}
+              maxStops={5}
+            />
+
             <AddressAutocomplete
               label="Drop-off Location"
               value={dropoff.text}
@@ -415,31 +571,48 @@ export function QuoteFormSection() {
             />
 
             <div className={journeyType === 'return' ? 'grid gap-4 sm:grid-cols-2' : ''}>
-              <Input
-                type="datetime-local"
-                label="Pickup Date & Time"
-                value={formData.pickupDatetime}
-                onChange={(e) => setFormData({ ...formData, pickupDatetime: e.target.value })}
-                error={errors.pickupDatetime}
-              />
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                  Pickup Date & Time
+                </label>
+                <DateTimePicker
+                  value={pickupDatetime}
+                  onChange={(date) => {
+                    setPickupDatetime(date);
+                    setErrors((prev) => ({ ...prev, pickupDatetime: '' }));
+                  }}
+                  error={errors.pickupDatetime}
+                  placeholder="dd/mm/yyyy, hh:mm AM/PM"
+                />
+              </div>
 
               {journeyType === 'return' && (
-                <Input
-                  type="datetime-local"
-                  label="Return Date & Time"
-                  value={formData.returnDatetime}
-                  onChange={(e) => setFormData({ ...formData, returnDatetime: e.target.value })}
-                  error={errors.returnDatetime}
-                />
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                    Return Date & Time
+                  </label>
+                  <DateTimePicker
+                    value={returnDatetime}
+                    onChange={(date) => {
+                      setReturnDatetime(date);
+                      setErrors((prev) => ({ ...prev, returnDatetime: '' }));
+                    }}
+                    error={errors.returnDatetime}
+                    placeholder="dd/mm/yyyy, hh:mm AM/PM"
+                    minDate={pickupDatetime || new Date()}
+                  />
+                </div>
               )}
             </div>
 
             {(formData.serviceType === 'AIRPORT_PICKUP' || formData.serviceType === 'AIRPORT_DROPOFF') && (
               <Input
-                label="Flight Number (Optional)"
+                label={formData.serviceType === 'AIRPORT_PICKUP' ? 'Flight Number' : 'Flight Number (Optional)'}
                 placeholder="e.g., BA123"
                 value={formData.flightNumber}
                 onChange={(e) => setFormData({ ...formData, flightNumber: e.target.value })}
+                error={errors.flightNumber}
+                required={formData.serviceType === 'AIRPORT_PICKUP'}
               />
             )}
           </div>
@@ -458,14 +631,14 @@ export function QuoteFormSection() {
                 label="Number of Passengers"
                 options={PASSENGER_OPTIONS}
                 value={formData.passengers}
-                onChange={(e) => setFormData({ ...formData, passengers: e.target.value })}
+                onChange={(e) => handlePassengerChange(e.target.value)}
               />
 
               <Select
                 label="Number of Luggage"
                 options={LUGGAGE_OPTIONS}
                 value={formData.luggage}
-                onChange={(e) => setFormData({ ...formData, luggage: e.target.value })}
+                onChange={(e) => handleLuggageChange(e.target.value)}
               />
             </div>
 
@@ -473,17 +646,31 @@ export function QuoteFormSection() {
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-neutral-800">Special Requirements</h3>
 
-              <Select
-                label="Child Seats Required"
-                options={[
-                  { value: '0', label: 'No child seats needed' },
-                  { value: '1', label: '1 child seat' },
-                  { value: '2', label: '2 child seats' },
-                  { value: '3', label: '3 child seats' },
-                ]}
-                value={formData.childSeats}
-                onChange={(e) => setFormData({ ...formData, childSeats: e.target.value })}
-              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Select
+                  label="Child Seats"
+                  options={[
+                    { value: '0', label: 'None needed' },
+                    { value: '1', label: '1 child seat (+£10)' },
+                    { value: '2', label: '2 child seats (+£20)' },
+                    { value: '3', label: '3 child seats (+£30)' },
+                  ]}
+                  value={formData.childSeats}
+                  onChange={(e) => setFormData({ ...formData, childSeats: e.target.value })}
+                />
+
+                <Select
+                  label="Booster Seats"
+                  options={[
+                    { value: '0', label: 'None needed' },
+                    { value: '1', label: '1 booster seat (+£5)' },
+                    { value: '2', label: '2 booster seats (+£10)' },
+                    { value: '3', label: '3 booster seats (+£15)' },
+                  ]}
+                  value={formData.boosterSeats}
+                  onChange={(e) => setFormData({ ...formData, boosterSeats: e.target.value })}
+                />
+              </div>
 
               <div className="space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -521,6 +708,7 @@ export function QuoteFormSection() {
                     </div>
                   </label>
                 )}
+
               </div>
 
               <Input
@@ -539,7 +727,7 @@ export function QuoteFormSection() {
           </div>
         )}
 
-        {/* Step 3: Vehicle Selection */}
+        {/* Step 3: Vehicle Selection with Map */}
         {currentStep === 3 && (
           <div className="space-y-6">
             <div>
@@ -547,40 +735,143 @@ export function QuoteFormSection() {
               <p className="mt-1 text-neutral-600">Select the vehicle type that suits your needs</p>
             </div>
 
-            <div className="space-y-4">
-              {VEHICLE_TYPES.map((vehicle) => (
-                <label
-                  key={vehicle.value}
-                  className={`flex cursor-pointer items-start gap-4 rounded-xl border-2 p-4 transition-all ${
-                    formData.vehicleType === vehicle.value
-                      ? 'border-accent-500 bg-accent-50 ring-2 ring-accent-200'
-                      : 'border-neutral-200 bg-white hover:border-accent-300 hover:bg-accent-50/30'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="vehicleType"
-                    value={vehicle.value}
-                    checked={formData.vehicleType === vehicle.value}
-                    onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
-                    className="mt-1 h-5 w-5 text-accent-600 focus:ring-2 focus:ring-accent-500"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-neutral-900">{vehicle.label}</h3>
-                      <span className={`text-sm font-semibold ${formData.vehicleType === vehicle.value ? 'text-accent-700' : 'text-neutral-600'}`}>
-                        {vehicle.priceMultiplier === 1.0 ? 'Standard' : `+${((vehicle.priceMultiplier - 1) * 100).toFixed(0)}%`}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm text-neutral-600">{vehicle.description}</p>
-                    <div className="mt-2 flex gap-4 text-xs text-neutral-500">
-                      <span>👥 {vehicle.passengers} passengers</span>
-                      <span>🧳 {vehicle.luggage}</span>
+            {/* Responsive Layout: Map + Vehicle Cards */}
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Map Section - Left on Desktop, Top on Mobile */}
+              <div className="lg:w-2/5 lg:sticky lg:top-4 lg:self-start">
+                <RouteMapPreview
+                  pickupLat={pickup.lat}
+                  pickupLng={pickup.lng}
+                  dropoffLat={dropoff.lat}
+                  dropoffLng={dropoff.lng}
+                  pickupAddress={pickup.address || pickup.text}
+                  dropoffAddress={dropoff.address || dropoff.text}
+                  stops={stopsForApi}
+                  className="ring-1 ring-neutral-200 shadow-md"
+                />
+              </div>
+
+              {/* Vehicle Cards - Right on Desktop, Bottom on Mobile */}
+              <div className="lg:w-3/5 space-y-3">
+                {isLoadingQuotes && (
+                  <div className="flex items-center justify-center p-8 bg-neutral-50 rounded-lg border border-neutral-200">
+                    <div className="flex items-center gap-3">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-accent-600 border-t-transparent"></div>
+                      <p className="text-sm text-neutral-600">Calculating prices...</p>
                     </div>
                   </div>
-                </label>
-              ))}
+                )}
+                {VEHICLE_TYPES.map((vehicle) => {
+                  const isSelected = formData.vehicleType === vehicle.value;
+                  const passengerCount = parseInt(formData.passengers);
+                  const luggageCount = parseInt(formData.luggage);
+                  const exceedsPassengers = passengerCount > vehicle.maxPassengers;
+                  const exceedsLuggage = luggageCount > vehicle.maxLuggage;
+                  const isDisabled = exceedsPassengers || exceedsLuggage;
+                  const vehicleQuote = vehicleQuotes.find((q) => q.vehicleType === vehicle.value);
+
+                  return (
+                    <label
+                      key={vehicle.value}
+                      className={`group flex rounded-xl border-2 overflow-hidden transition-all ${
+                        isDisabled
+                          ? 'cursor-not-allowed border-neutral-200 bg-neutral-100 opacity-60'
+                          : isSelected
+                            ? 'cursor-pointer border-accent-500 bg-accent-50 ring-2 ring-accent-200 shadow-md'
+                            : 'cursor-pointer border-neutral-200 bg-white hover:border-accent-300 hover:shadow-sm'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="vehicleType"
+                        value={vehicle.value}
+                        checked={isSelected}
+                        onChange={(e) => !isDisabled && setFormData({ ...formData, vehicleType: e.target.value })}
+                        disabled={isDisabled}
+                        className="sr-only"
+                      />
+
+                      {/* Vehicle Icon */}
+                      <div className={`relative w-28 sm:w-36 md:w-44 flex-shrink-0 flex items-center justify-center p-3 transition-colors ${
+                        isSelected ? 'bg-accent-100' : 'bg-neutral-50 group-hover:bg-neutral-100'
+                      }`}>
+                        {(() => {
+                          const VehicleIcon = getVehicleIcon(vehicle.value);
+                          return <VehicleIcon className="w-full h-auto max-h-16" />;
+                        })()}
+                        {/* Selection Indicator Overlay */}
+                        {isSelected && (
+                          <div className="absolute top-2 right-2">
+                            <div className="bg-accent-500 rounded-full p-1 shadow-sm">
+                              <Check className="h-3 w-3 text-white" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Vehicle Info */}
+                      <div className="flex-1 p-3 sm:p-4 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="text-sm sm:text-base font-bold text-neutral-900 truncate">
+                            {vehicle.label}
+                          </h3>
+                          {vehicleQuote && !isLoadingQuotes ? (
+                            <div className="flex flex-col items-end">
+                              <span className={`text-base sm:text-lg font-bold whitespace-nowrap ${
+                                isSelected ? 'text-accent-700' : 'text-neutral-900'
+                              }`}>
+                                £{vehicleQuote.totalPrice.toFixed(2)}
+                              </span>
+                              {vehicleQuote.discountAmount && vehicleQuote.discountAmount > 0 && (
+                                <span className="text-xs text-success-600 font-medium">
+                                  Save £{vehicleQuote.discountAmount.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className={`text-xs sm:text-sm font-semibold whitespace-nowrap ${
+                              isSelected ? 'text-accent-700' : 'text-neutral-500'
+                            }`}>
+                              {vehicle.priceMultiplier === 1.0 ? 'Standard' : `+${((vehicle.priceMultiplier - 1) * 100).toFixed(0)}%`}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-xs sm:text-sm text-neutral-600 line-clamp-1 sm:line-clamp-2">
+                          {vehicle.description}
+                        </p>
+                        <div className="mt-2 flex items-center gap-3 sm:gap-4 text-xs text-neutral-500">
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3.5 w-3.5" />
+                            <span>{vehicle.passengers}</span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Briefcase className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">{vehicle.luggage}</span>
+                            <span className="sm:hidden">{vehicle.luggage.split(',')[0]}</span>
+                          </span>
+                        </div>
+                        {isDisabled && (
+                          <p className="mt-2 text-xs text-error-600 font-medium">
+                            {exceedsPassengers && exceedsLuggage
+                              ? `Max ${vehicle.maxPassengers} passengers & ${vehicle.maxLuggage} bags`
+                              : exceedsPassengers
+                                ? `Max ${vehicle.maxPassengers} passengers`
+                                : `Max ${vehicle.maxLuggage} bags`}
+                          </p>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
+
+            {errors.vehicleType && (
+              <div className="flex items-start gap-3 rounded-lg bg-error-50 p-4 ring-1 ring-error-200">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 text-error-600" />
+                <p className="text-sm text-error-700">{errors.vehicleType}</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -619,13 +910,13 @@ export function QuoteFormSection() {
               error={errors.email}
             />
 
-            <Input
-              type="tel"
+            <PhoneInput
               label="Phone Number"
-              placeholder="+44 7700 900000"
+              placeholder="7700 900000"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(value) => setFormData({ ...formData, phone: value })}
               error={errors.phone}
+              required
             />
 
             <div className="rounded-lg bg-accent-50 p-4 ring-1 ring-accent-100">
@@ -638,8 +929,9 @@ export function QuoteFormSection() {
 
         {/* Error Message */}
         {submitError && (
-          <div className="mt-4 rounded-lg bg-red-50 p-4 ring-1 ring-red-200">
-            <p className="text-sm text-red-700">{submitError}</p>
+          <div className="mt-4 flex items-start gap-3 rounded-lg bg-error-50 p-4 ring-1 ring-error-200">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-error-600" />
+            <p className="text-sm text-error-700">{submitError}</p>
           </div>
         )}
 

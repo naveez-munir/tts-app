@@ -7,7 +7,7 @@ import type { AboutPageData, MissionVisionData } from '@/types/landing.types';
 export const aboutPageData: AboutPageData = {
   hero: {
     title: 'About Total Travel Solution',
-    subtitle: 'Connecting travelers with trusted transport operators across the UK',
+    subtitle: 'Connecting travellers with trusted transport operators across the UK',
   },
   stats: [
     { value: '10,000+', label: 'Happy Customers' },
@@ -19,10 +19,10 @@ export const aboutPageData: AboutPageData = {
     title: 'Our Story',
     image: {
       src: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=600&fit=crop&q=80',
-      alt: 'Modern airport terminal',
+      alt: 'Modern travel terminal with passengers',
     },
     paragraphs: [
-      'Total Travel Solution was founded with a simple mission: to make airport transfers transparent, affordable, and stress-free for everyone. We recognized that travelers deserved better than opaque pricing and unreliable service.',
+      'Total Travel Solution was founded with a simple mission: to make travel transfers transparent, affordable, and stress-free for everyone. We recognised that travellers deserved better than opaque pricing and unreliable service.',
       "By creating a marketplace that connects customers directly with vetted transport operators, we've built a platform where competition drives quality and affordability. Our technology ensures you always get the best service at the best price.",
       "Today, we're proud to serve thousands of customers across the UK, working with hundreds of professional operators who share our commitment to excellence.",
     ],
@@ -40,7 +40,7 @@ export const aboutPageData: AboutPageData = {
     },
     {
       title: 'Quality',
-      description: 'Vetted operators with valid licenses, insurance, and modern vehicles.',
+      description: 'Vetted operators with valid licences, insurance, and modern vehicles.',
       icon: 'star',
     },
     {
@@ -59,19 +59,19 @@ export const aboutPageData: AboutPageData = {
     {
       title: 'Instant Booking',
       description:
-        'Get a quote in seconds, book in minutes. Our streamlined process makes airport transfers effortless.',
+        'Get a quote in seconds, book in minutes. Our streamlined process makes transfers effortless.',
       icon: 'clock',
     },
     {
       title: 'Professional Drivers',
       description:
-        'All operators are thoroughly vetted with valid licenses, insurance, and excellent track records.',
+        'All operators are thoroughly vetted with valid licences, insurance, and excellent track records.',
       icon: 'badge',
     },
     {
       title: 'UK-Wide Coverage',
       description:
-        'From Heathrow to Edinburgh, we cover all major UK airports with reliable local operators.',
+        'From London to Edinburgh, we cover all major UK destinations with reliable local operators.',
       icon: 'map',
     },
     {
@@ -95,7 +95,7 @@ export const aboutPageData: AboutPageData = {
 export const missionData: MissionVisionData = {
   title: 'Our Mission',
   description:
-    'To revolutionize airport transfers by creating a transparent, competitive marketplace that connects customers with trusted transport operators. We deliver exceptional service, competitive pricing, and peace of mind for every journey.',
+    'To revolutionise travel transfers by creating a transparent, competitive marketplace that connects customers with trusted transport operators. We deliver exceptional service, competitive pricing, and peace of mind for every journey.',
   features: [
     {
       title: 'Transparent Pricing',
@@ -119,11 +119,11 @@ export const missionData: MissionVisionData = {
 export const visionData: MissionVisionData = {
   title: 'Our Vision',
   description:
-    "To become the UK's most trusted and innovative airport transfer platform, setting new standards for reliability, affordability, and customer satisfaction. We envision a future where every traveler experiences stress-free, seamless journeys.",
+    "To become the UK's most trusted and innovative travel platform, setting new standards for reliability, affordability, and customer satisfaction. We envision a future where every traveller experiences stress-free, seamless journeys.",
   features: [
     {
       title: 'UK-Wide Coverage',
-      description: 'All major airports covered',
+      description: 'All major destinations covered',
       icon: 'map',
     },
     {

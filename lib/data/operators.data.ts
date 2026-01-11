@@ -26,7 +26,7 @@ export const operatorsPageData: OperatorsPageData = {
       {
         icon: 'briefcase',
         title: 'Steady Stream of Jobs',
-        description: 'Get matched with airport transfer jobs in your service area. Access thousands of customers looking for reliable transport.',
+        description: 'Get matched with transfer jobs in your service area. Access thousands of customers looking for reliable transport.',
       },
       {
         icon: 'calendar',
@@ -69,7 +69,7 @@ export const operatorsPageData: OperatorsPageData = {
       {
         number: 2,
         title: 'Get Verified',
-        description: 'Upload your operating license, insurance documents, and vehicle details. Our team reviews within 48 hours.',
+        description: 'Upload your operating licence, insurance documents, and vehicle details. Our team reviews within 48 hours.',
         icon: 'shield-check',
       },
       {
@@ -94,7 +94,7 @@ export const operatorsPageData: OperatorsPageData = {
       {
         category: 'Licensing & Insurance',
         requirements: [
-          'Valid Private Hire or Hackney Carriage license',
+          'Valid Private Hire or Hackney Carriage licence',
           'Comprehensive vehicle insurance with hire & reward cover',
           'Public liability insurance (minimum £5 million)',
           'Valid MOT certificate (if vehicle is over 3 years old)',
@@ -112,7 +112,7 @@ export const operatorsPageData: OperatorsPageData = {
       {
         category: 'Driver Requirements',
         requirements: [
-          'Valid UK driving license (held for minimum 3 years)',
+          'Valid UK driving licence (held for minimum 3 years)',
           'Enhanced DBS check (we can arrange this for you)',
           'Professional appearance and customer service skills',
           'Smartphone for job notifications and navigation',
@@ -124,7 +124,7 @@ export const operatorsPageData: OperatorsPageData = {
   earnings: {
     title: 'Earnings Potential',
     subtitle: 'Transparent pricing and reliable income',
-    description: 'Your earnings depend on the jobs you complete. Airport transfers typically range from £30-£150+ depending on distance and vehicle type. Operators working full-time can earn £2,500-£5,000+ per month.',
+    description: 'Your earnings depend on the jobs you complete. Transfer typically depends on distance and vehicle type. Operators working full time can earn excellent pay each week.',
     highlights: [
       'Keep majority of each fare',
       'Weekly payouts every Friday',
@@ -155,7 +155,7 @@ export const operatorsPageData: OperatorsPageData = {
       role: 'Minibus Operator, Birmingham',
       avatar: 'https://i.pravatar.cc/150?img=33',
       rating: 5,
-      quote: 'Professional platform with real support. No more empty miles or time-wasters. Every customer is verified and pre-paid. This is the future of airport transfers.',
+      quote: 'Professional platform with real support. No more empty miles or time-wasters. Every customer is verified and pre-paid. This is the future of professional transfers.',
     },
   ],
 

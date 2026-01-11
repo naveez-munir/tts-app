@@ -7,30 +7,30 @@ import type { ContactPageData } from '@/types/landing.types';
 export const contactPageData: ContactPageData = {
   hero: {
     title: 'Get in Touch',
-    subtitle: 'We\'re here to help with your airport transfer needs',
+    subtitle: 'We\'re here to help with your travel needs',
   },
   contactInfo: [
     {
       type: 'email',
       title: 'Email Us',
       description: 'Send us an email and we\'ll respond within 24 hours',
-      value: 'support@totaltravelsolution.co.uk',
-      href: 'mailto:support@totaltravelsolution.co.uk',
+      value: 'customerservice@totaltravelsolution.com',
+      href: 'mailto:customerservice@totaltravelsolution.com',
       icon: 'mail',
     },
     {
       type: 'phone',
       title: 'Call Us',
-      description: 'Available 24/7 for urgent inquiries',
-      value: '+44 20 1234 5678',
-      href: 'tel:+442012345678',
+      description: 'Available 24/7 for urgent enquiries',
+      value: '+44 330 133 7044',
+      href: 'tel:+443301337044',
       icon: 'phone',
     },
     {
       type: 'hours',
       title: 'Support Hours',
       description: '24/7 phone support for urgent matters',
-      value: 'Email: Mon-Sun, 24 hours',
+      value: 'Email: Mon–Sun, 24 hours',
       icon: 'clock',
     },
   ],
@@ -38,7 +38,7 @@ export const contactPageData: ContactPageData = {
     title: 'Send Us a Message',
     subtitle: 'Fill out the form below and we\'ll get back to you as soon as possible',
     inquiryTypes: [
-      { value: 'general', label: 'General Inquiry' },
+      { value: 'general', label: 'General Enquiry' },
       { value: 'booking', label: 'Booking Support' },
       { value: 'payment', label: 'Payment Issue' },
       { value: 'cancellation', label: 'Cancellation Request' },
@@ -51,7 +51,7 @@ export const contactPageData: ContactPageData = {
     subtitle: 'Quick answers to common questions',
     items: [
       {
-        question: 'How do I book an airport transfer?',
+        question: 'How do I book a transfer?',
         answer: 'Simply click "Get Quote" in the header, enter your journey details (pickup location, drop-off location, date/time, and passenger count), and you\'ll receive an instant quote. Confirm your booking and pay securely online to complete the process.',
       },
       {
@@ -64,7 +64,7 @@ export const contactPageData: ContactPageData = {
       },
       {
         question: 'Are your drivers licensed and insured?',
-        answer: 'Yes, all transport operators on our platform are thoroughly vetted. They must provide valid operating licenses, insurance documentation, and meet our strict quality standards before being approved to accept bookings.',
+        answer: 'Yes, all transport operators on our platform are thoroughly vetted. They must provide valid operating licences, insurance documentation, and meet our strict quality standards before being approved to accept bookings.',
       },
       {
         question: 'What payment methods do you accept?',
@@ -72,7 +72,7 @@ export const contactPageData: ContactPageData = {
       },
       {
         question: 'What if my flight is delayed?',
-        answer: 'For airport pickups, we include 60 minutes of complimentary waiting time from your scheduled pickup time. If your flight is delayed, please contact your assigned driver directly using the phone number provided in your booking confirmation.',
+        answer: 'For pickups from the terminal, we include 60 minutes of complimentary waiting time from your scheduled pickup time. If your flight is delayed, please contact your assigned driver directly using the phone number provided in your booking confirmation.',
       },
     ],
   },

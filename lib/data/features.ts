@@ -9,19 +9,19 @@ export const FEATURES: Feature[] = [
     icon: 'money',
     title: 'Best Prices Guaranteed',
     description:
-      'Get the most competitive rates for your airport transfers. Transparent pricing with no hidden fees or surprises.',
+      'Enjoy competitive, transparent pricing on all taxi bookings across the UK — no hidden charges, no surprises.',
   },
   {
     icon: 'shield',
-    title: 'Trusted Operators',
+    title: 'Trusted UK Operators',
     description:
-      'All transport operators are thoroughly vetted, licensed, and insured. Your safety and comfort are our top priorities.',
+      'All drivers are licenced, insured, and carefully vetted in line with UK transport regulations, so you can book with confidence.',
   },
   {
     icon: 'clock',
     title: '24/7 Support',
     description:
-      'Our customer support team is available around the clock to assist you with bookings, changes, or any questions you may have.',
+      'Our UK-based team is available 24/7 to help with bookings, changes, or any queries — whenever you need us.',
   },
   {
     icon: 'credit-card',
@@ -37,9 +37,9 @@ export const FEATURES: Feature[] = [
   },
   {
     icon: 'map',
-    title: 'UK-Wide Coverage',
+    title: 'UK-Wide Taxi Coverage',
     description:
-      'Service available across the entire UK. From major airports to remote locations, we have operators ready to serve you.',
+      'Book taxis anywhere in the UK — including London, Manchester, Birmingham, Heathrow, Gatwick, Luton, and beyond.',
   },
 ];
 

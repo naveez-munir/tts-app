@@ -49,20 +49,20 @@ export const CTA_STATS: StatItem[] = [
  */
 export const SECTION_HEADERS = {
   features: {
-    title: 'Why Choose Total Travel Solution?',
-    subtitle: 'The smart way to book airport transfers across the UK',
+    title: 'Why Choose Total Travel Solution Group?',
+    subtitle: "The smart way to book transfers across the UK — one of the UK's leading taxi booking platforms.",
   },
   howItWorks: {
     title: 'How It Works',
-    subtitle: 'Book your airport transfer in 4 simple steps',
+    subtitle: 'Your journey starts in four simple steps',
   },
   testimonials: {
     title: 'What Our Customers Say',
-    subtitle: "Don't just take our word for it - hear from our satisfied customers",
+    subtitle: "Don't just take our word for it — hear from our satisfied customers",
   },
   missionVision: {
     title: 'Our Mission & Vision',
-    subtitle: 'Transforming airport transfers across the UK',
+    subtitle: 'Transforming travel across the UK',
   },
 } as const;
 

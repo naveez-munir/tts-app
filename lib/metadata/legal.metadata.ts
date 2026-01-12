@@ -25,7 +25,7 @@ export const privacyMetadata: Metadata = {
 export const termsMetadata: Metadata = {
   title: 'Terms & Conditions | Total Travel Solution',
   description:
-    'Terms and Conditions for using Total Travel Solution Group Limited airport transfer booking platform. Read our booking terms, cancellation policy, and user responsibilities.',
+    'Terms and Conditions for using Total Travel Solution Group Limited travel booking platform. Read our booking terms, cancellation policy, and user responsibilities.',
   keywords: [
     'terms and conditions',
     'terms of service',
@@ -35,7 +35,7 @@ export const termsMetadata: Metadata = {
   ],
   openGraph: {
     title: 'Terms & Conditions | Total Travel Solution',
-    description: 'Terms and Conditions for using our airport transfer booking platform.',
+    description: 'Terms and Conditions for using our travel booking platform.',
     type: 'website',
   },
   robots: {

@@ -3,13 +3,13 @@ import { siteConfig } from '@/lib/data/seo.data';
 
 export const contactMetadata: Metadata = {
   title: 'Contact Us - Total Travel Solution | Get in Touch',
-  description: 'Contact Total Travel Solution for airport transfer inquiries, booking support, or general questions. Available 24/7 via phone and email. Fast response guaranteed.',
+  description: 'Contact Total Travel Solution for travel enquiries, booking support, or general questions. Available 24/7 via phone and email. Fast response guaranteed.',
   keywords: [
     'contact total travel solution',
     'airport transfer support',
     'booking help',
     'customer service',
-    'transfer inquiries',
+    'transfer enquiries',
     '24/7 support',
   ],
   authors: [{ name: 'Total Travel Solution' }],
@@ -17,7 +17,7 @@ export const contactMetadata: Metadata = {
   publisher: 'Total Travel Solution',
   openGraph: {
     title: 'Contact Total Travel Solution - 24/7 Customer Support',
-    description: 'Get in touch with Total Travel Solution for airport transfer inquiries, booking support, or questions. Available 24/7 via phone and email.',
+    description: 'Get in touch with Total Travel Solution for travel enquiries, booking support, or questions. Available 24/7 via phone and email.',
     url: `${siteConfig.url}/contact`,
     siteName: siteConfig.name,
     images: [
@@ -34,7 +34,7 @@ export const contactMetadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Contact Total Travel Solution - 24/7 Customer Support',
-    description: 'Get in touch with Total Travel Solution for airport transfer inquiries and support.',
+    description: 'Get in touch with Total Travel Solution for travel enquiries and support.',
     images: [`${siteConfig.url}/twitter-image-contact.jpg`],
     creator: '@totaltravelsolution',
   },

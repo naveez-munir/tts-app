@@ -5,58 +5,58 @@ import type { Testimonial } from '@/types/landing.types';
  */
 export const TESTIMONIALS: Testimonial[] = [
   {
-    name: 'Sarah Johnson',
-    role: 'Business Traveler',
+    name: 'Sarah J.',
+    role: 'Business Traveller',
     location: 'London',
     rating: 5,
-    image: '👩‍💼',
+    image: '',
     quote:
-      "Total Travel Solution made my airport transfer so easy! The driver was professional, punctual, and the price was very competitive. I'll definitely use them again for my business trips.",
+      "Total Travel Solution made booking my taxi incredibly easy. The driver was professional, punctual, and the price was very competitive. I'll definitely be using them again for my business travel.",
   },
   {
-    name: 'Michael Chen',
-    role: 'Family Vacation',
+    name: 'Michael C.',
+    role: 'Family Travel',
     location: 'Manchester',
     rating: 5,
-    image: '👨‍👩‍👧‍👦',
+    image: '',
     quote:
-      'Booked a transfer for our family of 5 with lots of luggage. The MPV was spacious and comfortable. The booking process was straightforward and the driver helped with all our bags. Excellent service!',
+      'We booked a taxi for our family of five with plenty of luggage. The MPV was spacious and comfortable, and the booking process was very straightforward. The driver even helped with our bags — excellent service all round.',
   },
   {
-    name: 'Emma Williams',
-    role: 'Frequent Flyer',
+    name: 'Emma W.',
+    role: 'Frequent Traveller',
     location: 'Birmingham',
     rating: 5,
-    image: '✈️',
+    image: '',
     quote:
-      'I travel frequently for work and Total Travel Solution has become my go-to service. Reliable, affordable, and always on time. The instant quotes are a game-changer!',
+      'I travel regularly for work and Total Travel Solution has become my go-to taxi service. Always reliable, reasonably priced, and on time. The instant quotes are a real game-changer.',
   },
   {
-    name: 'David Thompson',
-    role: 'Airport Transfer',
+    name: 'David T.',
+    role: 'Regular Traveller',
     location: 'Edinburgh',
     rating: 5,
-    image: '🧳',
+    image: '',
     quote:
-      'Had an early morning flight and was worried about finding reliable transport. Total Travel Solution delivered perfectly - driver arrived 10 minutes early and got me to the airport with time to spare.',
+      'I had an early morning flight and needed a reliable taxi. Total Travel Solution delivered perfectly — the driver arrived 10 minutes early and got me there with time to spare.',
   },
   {
-    name: 'Lisa Martinez',
+    name: 'Lisa M.',
     role: 'Group Travel',
     location: 'Bristol',
     rating: 5,
-    image: '👥',
+    image: '',
     quote:
-      'Organized transport for our group of 12 colleagues. The minibus was clean, modern, and the driver was very accommodating. Great value for money and hassle-free booking!',
+      'I arranged transport for a group of 12 colleagues. The minibus was clean and modern, and the driver was extremely accommodating. Great value for money and a completely hassle-free booking experience.',
   },
   {
-    name: 'James Anderson',
-    role: 'International Traveler',
+    name: 'James A.',
+    role: 'International Traveller',
     location: 'Glasgow',
     rating: 5,
-    image: '🌍',
+    image: '',
     quote:
-      'Coming from abroad, I needed a reliable transfer service. Total Travel Solution exceeded my expectations - clear communication, professional driver, and smooth journey. Highly recommend!',
+      'Arriving from abroad, I needed a dependable taxi service. Total Travel Solution exceeded my expectations — clear communication, a professional driver, and a smooth journey. Highly recommended.',
   },
 ];
 

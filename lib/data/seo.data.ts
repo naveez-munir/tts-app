@@ -5,7 +5,7 @@
 export const siteConfig = {
   name: 'Total Travel Solution',
   shortName: 'TTS',
-  description: 'UK\'s trusted airport transfer marketplace connecting travelers with professional transport operators',
+  description: 'UK\'s trusted travel marketplace connecting travellers with professional transport operators',
   url: 'https://totaltravelsolution.co.uk',
   ogImage: '/og-image.jpg',
   links: {
@@ -13,8 +13,8 @@ export const siteConfig = {
     facebook: 'https://facebook.com/totaltravelsolution',
   },
   contact: {
-    email: 'support@totaltravelsolution.co.uk',
-    phone: '+44 20 1234 5678',
+    email: 'customerservice@totaltravelsolution.com',
+    phone: '+44 330 133 7044',
   },
   company: {
     legalName: 'TOTAL TRAVEL SOLUTION GROUP LIMITED',

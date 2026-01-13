@@ -17,23 +17,46 @@ import {
 // ZOD SCHEMAS (for form validation)
 // ============================================================================
 
-// Base journey schema (shared between outbound and return)
+export const StopSchema = z.object({
+  address: z.string().min(1, 'Stop address is required'),
+  postcode: z.string().optional(),
+  lat: z.number(),
+  lng: z.number(),
+  notes: z.string().optional(),
+});
+
+export type StopDto = z.infer<typeof StopSchema>;
+
 const JourneySchema = z.object({
   pickupAddress: z.string().min(1, 'Pickup address is required'),
-  pickupPostcode: z.string().min(1, 'Pickup postcode is required'),
+  pickupPostcode: z.string().optional(),
   pickupLat: z.number(),
   pickupLng: z.number(),
   dropoffAddress: z.string().min(1, 'Dropoff address is required'),
-  dropoffPostcode: z.string().min(1, 'Dropoff postcode is required'),
+  dropoffPostcode: z.string().optional(),
   dropoffLat: z.number(),
   dropoffLng: z.number(),
-  pickupDatetime: z.coerce.date({ message: 'Invalid datetime format' }),
+  pickupDatetime: z.string().datetime({ message: 'Invalid datetime format' }),
   passengerCount: z.number().min(1).max(16),
   luggageCount: z.number().min(0),
-  vehicleType: z.enum(['SALOON', 'ESTATE', 'MPV', 'EXECUTIVE', 'MINIBUS']),
+  vehicleType: z.enum([
+    'SALOON',
+    'ESTATE',
+    'MPV',
+    'EXECUTIVE',
+    'EXECUTIVE_LUXURY',
+    'EXECUTIVE_PEOPLE_CARRIER',
+    'GREEN_CAR',
+    'MINIBUS',
+  ]),
   serviceType: z.enum(['AIRPORT_PICKUP', 'AIRPORT_DROPOFF', 'POINT_TO_POINT']),
   flightNumber: z.string().optional(),
   specialRequirements: z.string().optional(),
+  terminal: z.string().optional(),
+  hasMeetAndGreet: z.boolean().optional().default(false),
+  childSeats: z.number().int().min(0).optional().default(0),
+  boosterSeats: z.number().int().min(0).optional().default(0),
+  stops: z.array(StopSchema).optional().default([]),
   customerName: z.string().optional(),
   customerEmail: z.string().email().optional(),
   customerPhone: z.string().optional(),
@@ -56,7 +79,7 @@ export const CreateReturnBookingSchema = z.object({
 
 // Update booking schema
 export const UpdateBookingSchema = z.object({
-  pickupDatetime: z.coerce.date().optional(),
+  pickupDatetime: z.string().datetime().optional(),
   passengerCount: z.number().min(1).max(16).optional(),
   luggageCount: z.number().min(0).optional(),
   specialRequirements: z.string().optional(),
@@ -74,6 +97,16 @@ export type UpdateBookingDto = z.infer<typeof UpdateBookingSchema>;
 // ============================================================================
 // API RESPONSE TYPES
 // ============================================================================
+
+export interface StopResponse {
+  id: string;
+  stopOrder: number;
+  address: string;
+  postcode: string | null;
+  lat: number;
+  lng: number;
+  notes: string | null;
+}
 
 export interface Booking {
   id: string;
@@ -104,6 +137,9 @@ export interface Booking {
   customerPhone: string | null;
   terminal: string | null;
   hasMeetAndGreet: boolean;
+  childSeats: number;
+  boosterSeats: number;
+  stops: StopResponse[];
   customerPrice: number;
   status: BookingStatus;
   createdAt: string;

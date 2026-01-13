@@ -14,7 +14,19 @@ export enum VehicleType {
   ESTATE = 'ESTATE',
   MPV = 'MPV',
   EXECUTIVE = 'EXECUTIVE',
+  EXECUTIVE_LUXURY = 'EXECUTIVE_LUXURY',
+  EXECUTIVE_PEOPLE_CARRIER = 'EXECUTIVE_PEOPLE_CARRIER',
+  GREEN_CAR = 'GREEN_CAR',
   MINIBUS = 'MINIBUS',
+}
+
+export enum VehiclePhotoType {
+  FRONT = 'FRONT',
+  BACK = 'BACK',
+  DRIVER_SIDE = 'DRIVER_SIDE',
+  FRONT_SIDE = 'FRONT_SIDE',
+  DASHBOARD = 'DASHBOARD',
+  REAR_BOOT = 'REAR_BOOT',
 }
 
 export enum ServiceType {
@@ -37,6 +49,7 @@ export enum BookingStatus {
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
   REFUNDED = 'REFUNDED',
+  NO_SHOW = 'NO_SHOW',
 }
 
 export enum BookingGroupStatus {
@@ -50,6 +63,7 @@ export enum JobStatus {
   OPEN_FOR_BIDDING = 'OPEN_FOR_BIDDING',
   BIDDING_CLOSED = 'BIDDING_CLOSED',
   NO_BIDS_RECEIVED = 'NO_BIDS_RECEIVED',
+  PENDING_ACCEPTANCE = 'PENDING_ACCEPTANCE',
   ASSIGNED = 'ASSIGNED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
@@ -58,6 +72,9 @@ export enum JobStatus {
 
 export enum BidStatus {
   PENDING = 'PENDING',
+  OFFERED = 'OFFERED',
+  ACCEPTED = 'ACCEPTED',
+  DECLINED = 'DECLINED',
   WON = 'WON',
   LOST = 'LOST',
   WITHDRAWN = 'WITHDRAWN',

@@ -39,6 +39,9 @@ export interface Bid {
   notes: string | null;
   submittedAt: string;
   updatedAt: string;
+  // Acceptance tracking fields
+  offeredAt?: string | null;
+  respondedAt?: string | null;
 }
 
 export interface CreateBidResponse {

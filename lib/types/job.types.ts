@@ -20,6 +20,8 @@ export interface DriverDetails {
   vehicleMake: string | null;
   vehicleModel: string | null;
   vehicleColor: string | null;
+  taxiLicenceNumber: string | null;
+  issuingCouncil: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +33,12 @@ export interface Job {
   biddingWindowOpensAt: string;
   biddingWindowClosesAt: string;
   biddingWindowDurationHours: number;
+  // Acceptance window fields
+  acceptanceWindowOpensAt?: string | null;
+  acceptanceWindowClosesAt?: string | null;
+  currentOfferedBidId?: string | null;
+  acceptanceAttemptCount?: number;
+  // Assignment details
   assignedOperatorId: string | null;
   winningBidId: string | null;
   platformMargin: number | null;

@@ -3,7 +3,7 @@ import { siteConfig } from '@/lib/data/seo.data';
 
 export const operatorsMetadata: Metadata = {
   title: 'Join Our Network - Total Travel Solution | For Transport Operators',
-  description: 'Join Total Travel Solution\'s network of professional transport operators. Get steady airport transfer jobs, guaranteed payments, and 24/7 support. Apply now to grow your business.',
+  description: 'Join Total Travel Solution\'s network of professional transport operators. Get steady transfer jobs, guaranteed payments, and 24/7 support. Apply now to grow your business.',
   keywords: [
     'transport operator jobs',
     'airport transfer operator',

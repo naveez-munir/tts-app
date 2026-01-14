@@ -10,6 +10,12 @@ import type {
   RegisterResponse,
   LoginResponse,
   User,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  SendVerificationOtpDto,
+  VerifyEmailDto,
+  ResendOtpDto,
+  OtpResponse,
 } from '@/lib/types';
 
 // ============================================================================
@@ -91,5 +97,65 @@ export const getCurrentUser = (): User | null => {
 export const hasRole = (role: string): boolean => {
   const user = getCurrentUser();
   return user?.role === role;
+};
+
+/**
+ * Send password reset OTP to email
+ * POST /auth/forgot-password
+ */
+export const forgotPassword = async (data: ForgotPasswordDto): Promise<OtpResponse> => {
+  const response = await apiClient.post<OtpResponse>('/auth/forgot-password', data);
+  return response.data;
+};
+
+/**
+ * Reset password using OTP
+ * POST /auth/reset-password
+ */
+export const resetPassword = async (data: ResetPasswordDto): Promise<OtpResponse> => {
+  const response = await apiClient.post<OtpResponse>('/auth/reset-password', data);
+  return response.data;
+};
+
+/**
+ * Send email verification OTP
+ * POST /auth/send-verification-otp
+ */
+export const sendVerificationOtp = async (data: SendVerificationOtpDto): Promise<OtpResponse> => {
+  const response = await apiClient.post<OtpResponse>('/auth/send-verification-otp', data);
+  return response.data;
+};
+
+/**
+ * Verify email using OTP
+ * POST /auth/verify-email
+ */
+export const verifyEmail = async (data: VerifyEmailDto): Promise<OtpResponse> => {
+  const response = await apiClient.post<OtpResponse>('/auth/verify-email', data);
+
+  // Update user in localStorage to mark email as verified
+  if (typeof window !== 'undefined') {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr) as User;
+        user.isEmailVerified = true;
+        localStorage.setItem('user', JSON.stringify(user));
+      } catch {
+        // Ignore error
+      }
+    }
+  }
+
+  return response.data;
+};
+
+/**
+ * Resend OTP (for either password reset or email verification)
+ * POST /auth/resend-otp
+ */
+export const resendOtp = async (data: ResendOtpDto): Promise<OtpResponse> => {
+  const response = await apiClient.post<OtpResponse>('/auth/resend-otp', data);
+  return response.data;
 };
 

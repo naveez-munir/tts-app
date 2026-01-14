@@ -237,6 +237,29 @@ export const getOperatorDetails = async (id: string) => {
 };
 
 // ============================================================================
+// OPERATOR DOCUMENTS
+// ============================================================================
+
+export interface OperatorDocument {
+  id: string;
+  documentType: string;
+  fileName: string;
+  fileUrl?: string;
+  uploadedAt: string;
+  expiresAt: string | null;
+  urlExpiresIn?: number;
+}
+
+/**
+ * Get operator documents (with presigned URLs)
+ * GET /admin/operators/:id/documents
+ */
+export const getOperatorDocuments = async (operatorId: string): Promise<OperatorDocument[]> => {
+  const response: AxiosResponse = await apiClient.get(`/admin/operators/${operatorId}/documents`);
+  return response.data.data;
+};
+
+// ============================================================================
 // REPORTS
 // ============================================================================
 
@@ -247,5 +270,173 @@ export const getRevenueReport = async (query: ReportsQuery) => {
 
 export const getPayoutsReport = async (query: ReportsQuery) => {
   const response: AxiosResponse = await apiClient.get('/admin/reports/payouts', { params: query });
+  return response.data;
+};
+
+// ============================================================================
+// SYSTEM SETTINGS
+// ============================================================================
+
+export interface SystemSetting {
+  id: string;
+  key: string;
+  value: string | number | boolean;
+  rawValue: string;
+  dataType: 'STRING' | 'NUMBER' | 'BOOLEAN' | 'JSON' | 'TIME';
+  description: string | null;
+}
+
+export interface SystemSettingsGrouped {
+  [category: string]: SystemSetting[];
+}
+
+export interface UpdateSettingData {
+  value: string | number | boolean | Record<string, unknown>;
+}
+
+export interface BulkUpdateSettingItem {
+  key: string;
+  value: string | number | boolean | Record<string, unknown>;
+}
+
+/**
+ * Get all system settings grouped by category
+ */
+export const getSystemSettings = async (): Promise<SystemSettingsGrouped> => {
+  const response: AxiosResponse = await apiClient.get('/admin/system-settings');
+  return response.data.data;
+};
+
+/**
+ * Get system settings by category
+ */
+export const getSystemSettingsByCategory = async (category: string): Promise<SystemSetting[]> => {
+  const response: AxiosResponse = await apiClient.get(`/admin/system-settings/category/${category}`);
+  return response.data.data;
+};
+
+/**
+ * Update a single system setting
+ */
+export const updateSystemSetting = async (key: string, data: UpdateSettingData): Promise<void> => {
+  await apiClient.patch(`/admin/system-settings/${key}`, data);
+};
+
+/**
+ * Bulk update multiple system settings
+ */
+export const bulkUpdateSystemSettings = async (updates: BulkUpdateSettingItem[]): Promise<void> => {
+  await apiClient.patch('/admin/system-settings', { updates });
+};
+
+// ============================================================================
+// CUSTOMER MANAGEMENT
+// ============================================================================
+
+export interface ListCustomersQuery {
+  search?: string;
+  isActive?: 'true' | 'false';
+  sortBy?: 'createdAt' | 'lastName' | 'email';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+
+export interface Customer {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+  isActive: boolean;
+  isEmailVerified: boolean;
+  totalBookings: number;
+  totalSpent: number;
+  registeredAt: string;
+}
+
+export interface CustomerDetails {
+  customer: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string | null;
+    isActive: boolean;
+    isEmailVerified: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+  statistics: {
+    totalBookings: number;
+    completedBookings: number;
+    cancelledBookings: number;
+    activeBookings: number;
+    totalSpent: number;
+  };
+  recentBookings: Array<{
+    id: string;
+    bookingReference: string;
+    status: string;
+    pickupAddress: string;
+    dropoffAddress: string;
+    pickupDatetime: string;
+    customerPrice: number;
+    vehicleType: string;
+    journeyType: string;
+    createdAt: string;
+  }>;
+}
+
+export interface UpdateCustomerStatusData {
+  isActive: boolean;
+}
+
+export interface CustomerTransactionsQuery {
+  transactionType?: 'CUSTOMER_PAYMENT' | 'REFUND' | 'PLATFORM_COMMISSION' | 'OPERATOR_PAYOUT';
+  status?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * List all customers with search, filters, and pagination
+ */
+export const listCustomers = async (query: ListCustomersQuery = {}) => {
+  const response: AxiosResponse = await apiClient.get('/admin/customers', { params: query });
+  return response.data;
+};
+
+/**
+ * Get individual customer details with booking statistics
+ */
+export const getCustomerDetails = async (id: string): Promise<CustomerDetails> => {
+  const response: AxiosResponse = await apiClient.get(`/admin/customers/${id}`);
+  return response.data.data;
+};
+
+/**
+ * Update customer account status (activate/deactivate)
+ */
+export const updateCustomerStatus = async (id: string, data: UpdateCustomerStatusData) => {
+  const response: AxiosResponse = await apiClient.patch(`/admin/customers/${id}/status`, data);
+  return response.data;
+};
+
+/**
+ * Get customer booking history with filters
+ */
+export const getCustomerBookings = async (id: string, query: ListBookingsQuery = {}) => {
+  const response: AxiosResponse = await apiClient.get(`/admin/customers/${id}/bookings`, { params: query });
+  return response.data;
+};
+
+/**
+ * Get customer transaction history
+ */
+export const getCustomerTransactions = async (id: string, query: CustomerTransactionsQuery = {}) => {
+  const response: AxiosResponse = await apiClient.get(`/admin/customers/${id}/transactions`, { params: query });
   return response.data;
 };

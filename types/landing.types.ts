@@ -116,8 +116,11 @@ export interface VehicleType {
   label: string;
   passengers: string;
   luggage: string;
+  maxPassengers: number;
+  maxLuggage: number;
   description: string;
   priceMultiplier: number;
+  image?: string; // Optional - using SVG icons instead
 }
 
 /** Service type option */

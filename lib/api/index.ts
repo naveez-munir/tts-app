@@ -14,6 +14,8 @@ export * as operatorApi from './operator.api';
 export * as jobApi from './job.api';
 export * as bidApi from './bid.api';
 export * as paymentApi from './payment.api';
+export * as payoutApi from './payout.api';
+export * as vehicleCapacityApi from './vehicle-capacity.api';
 
 // Direct exports for commonly used functions
 export { login, register, logout, getCurrentUser, hasRole } from './auth.api';
@@ -42,6 +44,9 @@ export {
   getOperatorDashboard,
   updateOperatorProfile,
   updateBankDetails,
+  getJobOffers,
+  acceptJobOffer,
+  declineJobOffer,
 } from './operator.api';
 export {
   getJobById,
@@ -66,3 +71,17 @@ export {
   getTransactionHistory,
   refundPayment,
 } from './payment.api';
+export {
+  getVehicleCapacities,
+  getAdminVehicleCapacities,
+  updateVehicleCapacity,
+} from './vehicle-capacity.api';
+export {
+  getPayoutSettings,
+  getPendingPayouts,
+  getProcessingPayouts,
+  calculatePayouts,
+  initiatePayouts,
+  completePayout,
+  getMyEarnings,
+} from './payout.api';

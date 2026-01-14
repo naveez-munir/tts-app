@@ -58,48 +58,23 @@ apiClient.interceptors.response.use(
     // Handle different error scenarios
     if (error.response) {
       // Server responded with error status
-      const { status, data } = error.response;
+      const { status } = error.response;
 
-      switch (status) {
-        case 401:
-          // Unauthorized - clear token and redirect to login
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('user');
-            // Redirect to login page
-            window.location.href = '/sign-in';
-          }
-          break;
-
-        case 403:
-          // Forbidden - user doesn't have permission
-          console.error('Access forbidden:', data);
-          break;
-
-        case 404:
-          // Not found
-          console.error('Resource not found:', data);
-          break;
-
-        case 422:
-        case 400:
-          // Validation error
-          console.error('Validation error:', data);
-          break;
-
-        case 500:
-          // Server error
-          console.error('Server error:', data);
-          break;
-
-        default:
-          console.error('API error:', data);
+      // Handle 401 Unauthorized - clear token and redirect to login
+      if (status === 401) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('user');
+          // Redirect to login page
+          window.location.href = '/sign-in';
+        }
       }
 
-      return Promise.reject(data || error);
+      // IMPORTANT: Reject with the original AxiosError, not just the data
+      // This preserves error.response.data for error handlers
+      return Promise.reject(error);
     } else if (error.request) {
       // Request was made but no response received
-      console.error('Network error - no response received');
       return Promise.reject({
         success: false,
         error: {
@@ -109,7 +84,6 @@ apiClient.interceptors.response.use(
       } as ApiErrorResponse);
     } else {
       // Something else happened
-      console.error('Request error:', error.message);
       return Promise.reject({
         success: false,
         error: {

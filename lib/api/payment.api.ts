@@ -86,12 +86,12 @@ export const createPaymentIntent = async (
 
 /**
  * Create a payment intent for a booking group (return journey)
- * POST /payments/group/intent
+ * POST /payments/group/create-intent
  */
 export const createGroupPaymentIntent = async (
   data: CreateGroupPaymentIntentDto
 ): Promise<GroupPaymentIntentResponse['data']> => {
-  const response = await apiClient.post<GroupPaymentIntentResponse>('/payments/group/intent', data);
+  const response = await apiClient.post<GroupPaymentIntentResponse>('/payments/group/create-intent', data);
   return response.data.data;
 };
 

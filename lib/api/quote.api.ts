@@ -10,13 +10,16 @@ import type {
   DistanceResult,
   SingleJourneyQuoteRequest,
   ReturnJourneyQuoteRequest,
+  AllVehiclesQuoteRequest,
   SingleJourneyQuote,
   ReturnJourneyQuote,
+  AllVehiclesQuoteResponse,
   AutocompleteResponse,
   PlaceDetailsResponse,
   DistanceResponse,
   SingleQuoteResponse,
   ReturnQuoteResponse,
+  AllVehiclesQuoteApiResponse,
 } from '@/lib/types';
 
 // ============================================================================
@@ -103,6 +106,20 @@ export const calculateReturnQuote = async (
 ): Promise<ReturnJourneyQuote> => {
   const response = await apiClient.post<ReturnQuoteResponse>(
     '/api/maps/quote/return',
+    request
+  );
+  return response.data.data;
+};
+
+/**
+ * Calculate quotes for all available vehicles in a single request
+ * POST /api/maps/quote/all-vehicles
+ */
+export const calculateAllVehiclesQuote = async (
+  request: AllVehiclesQuoteRequest
+): Promise<AllVehiclesQuoteResponse> => {
+  const response = await apiClient.post<AllVehiclesQuoteApiResponse>(
+    '/api/maps/quote/all-vehicles',
     request
   );
   return response.data.data;

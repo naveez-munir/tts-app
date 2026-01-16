@@ -2,33 +2,53 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Filter, Calendar, ArrowLeftRight } from 'lucide-react';
+import { Search, Filter, Calendar, ArrowLeftRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { StatusBadge, getStatusVariant } from '@/components/ui/StatusBadge';
 import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import { listBookings } from '@/lib/api/admin.api';
 import { formatDate, formatCurrency } from '@/lib/utils/date';
+import { getContextualErrorMessage } from '@/lib/utils/error-handler';
 
+// Normalized booking interface (frontend uses camelCase)
 interface Booking {
   id: string;
-  booking_reference: string;
-  customer_name: string;
-  pickup_location: string;
-  dropoff_location: string;
-  pickup_datetime: string;
-  quoted_price: number;
+  bookingReference: string;
+  customerName: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+  pickupDatetime: string;
+  customerPrice: number;
   status: string;
-  is_return_journey?: boolean;
-  booking_group_id?: string | null;
+  isReturnJourney?: boolean;
+  bookingGroupId?: string | null;
+}
+
+// Helper to normalize API response (handles both snake_case and camelCase)
+function normalizeBooking(raw: Record<string, unknown>): Booking {
+  return {
+    id: (raw.id as string) || '',
+    bookingReference: (raw.bookingReference ?? raw.booking_reference ?? '') as string,
+    customerName: (raw.customerName ?? raw.customer_name ?? (raw.customer as Record<string, unknown>)?.firstName ?? '') as string,
+    pickupAddress: (raw.pickupAddress ?? raw.pickup_address ?? raw.pickup_location ?? '') as string,
+    dropoffAddress: (raw.dropoffAddress ?? raw.dropoff_address ?? raw.dropoff_location ?? '') as string,
+    pickupDatetime: (raw.pickupDatetime ?? raw.pickup_datetime ?? '') as string,
+    customerPrice: (raw.customerPrice ?? raw.customer_price ?? raw.quoted_price ?? raw.quotedPrice ?? 0) as number,
+    status: (raw.status ?? '') as string,
+    isReturnJourney: (raw.isReturnJourney ?? raw.is_return_journey ?? false) as boolean,
+    bookingGroupId: (raw.bookingGroupId ?? raw.booking_group_id ?? null) as string | null,
+  };
 }
 
 const statusOptions = ['ALL', 'PENDING_PAYMENT', 'PAID', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 
 export default function BookingsListPage() {
   const router = useRouter();
-  
+
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -37,6 +57,7 @@ export default function BookingsListPage() {
   const fetchBookings = useCallback(async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await listBookings({
         status: statusFilter === 'ALL' ? undefined : statusFilter,
         page: currentPage,
@@ -44,17 +65,14 @@ export default function BookingsListPage() {
         search: search || undefined,
       });
       // API returns { success, data: { bookings: [...] }, meta }
-      setBookings(response.data?.bookings || []);
+      const rawBookings = response.data?.bookings || [];
+      setBookings(rawBookings.map(normalizeBooking));
       setTotalPages(response.meta?.totalPages || 1);
-    } catch (error) {
-      console.error('Failed to fetch bookings:', error);
-      // Mock data for development
-      setBookings([
-        { id: '1', booking_reference: 'TTS-ABC123', customer_name: 'John Smith', pickup_location: 'Heathrow T5', dropoff_location: 'Central London', pickup_datetime: '2025-01-25T14:30:00Z', quoted_price: 85.00, status: 'PAID', is_return_journey: false, booking_group_id: 'group-1' },
-        { id: '1b', booking_reference: 'TTS-ABC124', customer_name: 'John Smith', pickup_location: 'Central London', dropoff_location: 'Heathrow T5', pickup_datetime: '2025-01-28T10:00:00Z', quoted_price: 80.75, status: 'PAID', is_return_journey: true, booking_group_id: 'group-1' },
-        { id: '2', booking_reference: 'TTS-DEF456', customer_name: 'Sarah Jones', pickup_location: 'Gatwick North', dropoff_location: 'Brighton', pickup_datetime: '2025-01-26T09:00:00Z', quoted_price: 65.00, status: 'ASSIGNED', is_return_journey: false, booking_group_id: null },
-        { id: '3', booking_reference: 'TTS-GHI789', customer_name: 'Mike Brown', pickup_location: 'Manchester Airport', dropoff_location: 'Leeds City', pickup_datetime: '2025-01-27T18:00:00Z', quoted_price: 120.00, status: 'COMPLETED', is_return_journey: false, booking_group_id: null },
-      ]);
+    } catch (err: unknown) {
+      console.error('Failed to fetch bookings:', err);
+      const errorMessage = getContextualErrorMessage(err, 'fetch');
+      setError(errorMessage);
+      setBookings([]);
     } finally {
       setIsLoading(false);
     }
@@ -66,18 +84,18 @@ export default function BookingsListPage() {
 
   const columns: Column<Booking>[] = [
     {
-      key: 'booking_reference',
+      key: 'bookingReference',
       header: 'Reference',
       className: 'font-mono',
       render: (booking) => (
         <div className="flex items-center gap-2">
-          <span>{booking.booking_reference}</span>
-          {booking.is_return_journey && (
+          <span>{booking.bookingReference}</span>
+          {booking.isReturnJourney && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-secondary-100 text-secondary-700 rounded text-xs">
               <ArrowLeftRight className="w-3 h-3" /> Return
             </span>
           )}
-          {booking.booking_group_id && !booking.is_return_journey && (
+          {booking.bookingGroupId && !booking.isReturnJourney && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary-100 text-primary-700 rounded text-xs">
               <ArrowLeftRight className="w-3 h-3" /> +Return
             </span>
@@ -85,32 +103,32 @@ export default function BookingsListPage() {
         </div>
       ),
     },
-    { key: 'customer_name', header: 'Customer' },
+    { key: 'customerName', header: 'Customer' },
     {
-      key: 'pickup_location',
+      key: 'pickupAddress',
       header: 'Route',
       render: (booking) => (
         <div className="max-w-xs">
-          <p className="truncate">{booking.pickup_location}</p>
-          <p className="text-xs text-neutral-500 truncate">→ {booking.dropoff_location}</p>
+          <p className="truncate">{booking.pickupAddress}</p>
+          <p className="text-xs text-neutral-500 truncate">→ {booking.dropoffAddress}</p>
         </div>
       ),
     },
     {
-      key: 'pickup_datetime',
+      key: 'pickupDatetime',
       header: 'Pickup Date',
       sortable: true,
       render: (booking) => (
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-neutral-400" />
-          {formatDate(booking.pickup_datetime)}
+          {formatDate(booking.pickupDatetime)}
         </div>
       ),
     },
     {
-      key: 'quoted_price',
+      key: 'customerPrice',
       header: 'Price',
-      render: (booking) => formatCurrency(booking.quoted_price),
+      render: (booking) => formatCurrency(booking.customerPrice),
     },
     {
       key: 'status',
@@ -130,6 +148,20 @@ export default function BookingsListPage() {
         <h1 className="text-2xl font-bold text-neutral-900">Bookings</h1>
         <p className="text-neutral-600 mt-1">View and manage all customer bookings</p>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="flex items-center justify-between rounded-lg border border-error-200 bg-error-50 p-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-error-600" />
+            <p className="text-sm text-error-700">{error}</p>
+          </div>
+          <Button onClick={fetchBookings} variant="outline" size="sm">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">

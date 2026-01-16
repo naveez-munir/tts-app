@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import AdminLayout from '@/components/layout/AdminLayout';
+import { ToastProvider } from '@/components/ui/Toast';
 
 // Get user info from cookies (auth is already verified by middleware)
 async function getUserEmail() {
@@ -23,9 +24,11 @@ export default async function AdminRootLayout({
   const userEmail = await getUserEmail();
 
   return (
-    <AdminLayout userEmail={userEmail}>
-      {children}
-    </AdminLayout>
+    <ToastProvider>
+      <AdminLayout userEmail={userEmail}>
+        {children}
+      </AdminLayout>
+    </ToastProvider>
   );
 }
 

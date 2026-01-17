@@ -2,13 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { StatusBadge, getStatusVariant } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { listOperators } from '@/lib/api/admin.api';
 import { formatDate } from '@/lib/utils/date';
+import { getContextualErrorMessage } from '@/lib/utils/error-handler';
 
 interface Operator {
   id: string;
@@ -23,9 +24,10 @@ const statusOptions = ['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED'];
 export default function OperatorsListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [operators, setOperators] = useState<Operator[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -34,6 +36,7 @@ export default function OperatorsListPage() {
   const fetchOperators = useCallback(async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await listOperators({
         approvalStatus: statusFilter === 'ALL' ? undefined : statusFilter as 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED',
         page: currentPage,
@@ -43,14 +46,11 @@ export default function OperatorsListPage() {
       // API returns { success, data: { operators: [...] }, meta }
       setOperators(response.data?.operators || []);
       setTotalPages(response.meta?.totalPages || 1);
-    } catch (error) {
-      console.error('Failed to fetch operators:', error);
-      // Mock data for development
-      setOperators([
-        { id: '1', companyName: 'London Express Cars', user: { email: 'london@express.com' }, approvalStatus: 'APPROVED', createdAt: '2025-01-15T10:00:00Z' },
-        { id: '2', companyName: 'Heathrow Transfers', user: { email: 'info@heathrow.com' }, approvalStatus: 'PENDING', createdAt: '2025-01-20T14:30:00Z' },
-        { id: '3', companyName: 'Manchester Airport Cabs', user: { email: 'bookings@manc.com' }, approvalStatus: 'APPROVED', createdAt: '2025-01-10T09:00:00Z' },
-      ]);
+    } catch (err: unknown) {
+      console.error('Failed to fetch operators:', err);
+      const errorMessage = getContextualErrorMessage(err, 'fetch');
+      setError(errorMessage);
+      setOperators([]);
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +89,20 @@ export default function OperatorsListPage() {
           <p className="text-neutral-600 mt-1">Manage transport operator accounts</p>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="flex items-center justify-between rounded-lg border border-error-200 bg-error-50 p-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-error-600" />
+            <p className="text-sm text-error-700">{error}</p>
+          </div>
+          <Button onClick={fetchOperators} variant="outline" size="sm">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">

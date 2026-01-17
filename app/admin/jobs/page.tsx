@@ -2,33 +2,72 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Filter, AlertTriangle, Clock } from 'lucide-react';
+import { Search, Filter, AlertTriangle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { StatusBadge, getStatusVariant } from '@/components/ui/StatusBadge';
 import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import { listJobs, getEscalatedJobs } from '@/lib/api/admin.api';
 import { formatDateTime, formatCurrency } from '@/lib/utils/date';
+import { getContextualErrorMessage } from '@/lib/utils/error-handler';
 
+// Normalized job interface (frontend uses camelCase)
 interface Job {
   id: string;
-  booking_reference: string;
-  pickup_location: string;
-  pickup_datetime: string;
-  customer_price: number;
+  bookingReference: string;
+  pickupAddress: string;
+  pickupDatetime: string;
+  customerPrice: number;
   status: string;
-  bid_count: number;
-  winning_bid: number | null;
-  bidding_ends_at: string;
+  bidCount: number;
+  winningBid: number | null;
+  biddingEndsAt: string;
 }
 
-const statusOptions = ['ALL', 'OPEN', 'BIDDING_CLOSED', 'ASSIGNED', 'COMPLETED', 'NO_BIDS'];
+// Helper to normalize API response (handles both snake_case and camelCase)
+function normalizeJob(raw: Record<string, unknown>): Job {
+  // Handle nested booking object if present
+  const booking = raw.booking as Record<string, unknown> | undefined;
+  const biddingWindow = raw.biddingWindow as Record<string, unknown> | undefined;
+
+  // Parse customer price (handle string or number)
+  const customerPriceRaw = raw.customerPrice ?? raw.customer_price ?? booking?.customerPrice ?? booking?.customer_price ?? 0;
+  const customerPrice = typeof customerPriceRaw === 'string' ? parseFloat(customerPriceRaw) : (customerPriceRaw as number);
+
+  // Parse winning bid (handle string or number)
+  const winningBidRaw = raw.winningBid ?? raw.winning_bid ?? null;
+  const winningBid = winningBidRaw ? (typeof winningBidRaw === 'string' ? parseFloat(winningBidRaw) : (winningBidRaw as number)) : null;
+
+  return {
+    id: (raw.id as string) || '',
+    bookingReference: (raw.bookingReference ?? raw.booking_reference ?? booking?.bookingReference ?? booking?.booking_reference ?? '') as string,
+    pickupAddress: (raw.pickupAddress ?? raw.pickup_address ?? raw.pickup_location ?? booking?.pickupAddress ?? booking?.pickup_address ?? '') as string,
+    pickupDatetime: (raw.pickupDatetime ?? raw.pickup_datetime ?? booking?.pickupDatetime ?? booking?.pickup_datetime ?? '') as string,
+    customerPrice,
+    status: (raw.status ?? '') as string,
+    bidCount: (raw.bidsCount ?? raw.bidCount ?? raw.bid_count ?? (raw.bids as unknown[])?.length ?? 0) as number,
+    winningBid,
+    biddingEndsAt: (
+      biddingWindow?.closesAt ??
+      biddingWindow?.closes_at ??
+      raw.biddingWindowClosesAt ??
+      raw.biddingEndsAt ??
+      raw.bidding_ends_at ??
+      raw.bidding_window_closes_at ??
+      ''
+    ) as string,
+  };
+}
+
+const statusOptions = ['ALL', 'OPEN', 'OPEN_FOR_BIDDING', 'BIDDING_CLOSED', 'ASSIGNED', 'COMPLETED', 'NO_BIDS', 'NO_BIDS_RECEIVED'];
 
 export default function JobsListPage() {
   const router = useRouter();
-  
+
   const [jobs, setJobs] = useState<Job[]>([]);
   const [escalatedCount, setEscalatedCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -37,24 +76,24 @@ export default function JobsListPage() {
   const fetchJobs = useCallback(async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const [jobsRes, escalatedRes] = await Promise.all([
         listJobs({ status: statusFilter === 'ALL' ? undefined : statusFilter, page: currentPage, limit: 20, search: search || undefined }),
         getEscalatedJobs(),
       ]);
       // API returns { success, data: { jobs: [...] }, meta }
-      setJobs(jobsRes.data?.jobs || []);
+      const rawJobs = jobsRes.data?.jobs || [];
+      setJobs(rawJobs.map(normalizeJob));
       setTotalPages(jobsRes.meta?.totalPages || 1);
       // Escalated jobs also returns { data: { jobs: [...] } }
-      setEscalatedCount(escalatedRes.data?.jobs?.length || 0);
-    } catch (error) {
-      console.error('Failed to fetch jobs:', error);
-      // Mock data
-      setJobs([
-        { id: '1', booking_reference: 'TTS-ABC123', pickup_location: 'Heathrow T5', pickup_datetime: '2025-01-25T14:30:00Z', customer_price: 85.00, status: 'OPEN', bid_count: 3, winning_bid: null, bidding_ends_at: '2025-01-24T14:30:00Z' },
-        { id: '2', booking_reference: 'TTS-DEF456', pickup_location: 'Gatwick North', pickup_datetime: '2025-01-26T09:00:00Z', customer_price: 65.00, status: 'ASSIGNED', bid_count: 5, winning_bid: 48.00, bidding_ends_at: '2025-01-25T09:00:00Z' },
-        { id: '3', booking_reference: 'TTS-GHI789', pickup_location: 'Manchester Airport', pickup_datetime: '2025-01-27T18:00:00Z', customer_price: 120.00, status: 'NO_BIDS', bid_count: 0, winning_bid: null, bidding_ends_at: '2025-01-26T18:00:00Z' },
-      ]);
-      setEscalatedCount(1);
+      const rawEscalated = escalatedRes.data?.jobs || [];
+      setEscalatedCount(rawEscalated.length);
+    } catch (err: unknown) {
+      console.error('Failed to fetch jobs:', err);
+      const errorMessage = getContextualErrorMessage(err, 'fetch');
+      setError(errorMessage);
+      setJobs([]);
+      setEscalatedCount(0);
     } finally {
       setIsLoading(false);
     }
@@ -65,14 +104,32 @@ export default function JobsListPage() {
   }, [fetchJobs]);
 
   const columns: Column<Job>[] = [
-    { key: 'booking_reference', header: 'Booking Ref', className: 'font-mono' },
-    { key: 'pickup_location', header: 'Pickup Location', render: (job) => <span className="truncate max-w-xs block">{job.pickup_location}</span> },
-    { key: 'pickup_datetime', header: 'Pickup Time', sortable: true, render: (job) => formatDateTime(job.pickup_datetime) },
-    { key: 'customer_price', header: 'Customer Price', render: (job) => formatCurrency(job.customer_price) },
-    { key: 'bid_count', header: 'Bids', render: (job) => <span className="font-medium">{job.bid_count}</span> },
-    { key: 'winning_bid', header: 'Winning Bid', render: (job) => job.winning_bid ? formatCurrency(job.winning_bid) : '-' },
+    { key: 'bookingReference', header: 'Booking Ref', className: 'font-mono' },
+    { key: 'pickupAddress', header: 'Pickup Location', render: (job) => <span className="truncate max-w-xs block">{job.pickupAddress}</span> },
+    { key: 'pickupDatetime', header: 'Pickup Time', sortable: true, render: (job) => formatDateTime(job.pickupDatetime) },
+    { key: 'customerPrice', header: 'Customer Price', render: (job) => formatCurrency(job.customerPrice) },
+    { key: 'bidCount', header: 'Bids', render: (job) => <span className="font-medium">{job.bidCount}</span> },
+    { key: 'winningBid', header: 'Winning Bid', render: (job) => job.winningBid ? formatCurrency(job.winningBid) : '-' },
     { key: 'status', header: 'Status', render: (job) => <StatusBadge variant={getStatusVariant(job.status)}>{job.status.replace('_', ' ')}</StatusBadge> },
   ];
+
+  if (error && jobs.length === 0) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
+        <div className="rounded-full bg-error-100 p-4">
+          <AlertCircle className="h-8 w-8 text-error-600" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-neutral-900">Unable to Load Jobs</h2>
+          <p className="mt-1 text-neutral-600">{error}</p>
+        </div>
+        <Button onClick={fetchJobs} variant="primary">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

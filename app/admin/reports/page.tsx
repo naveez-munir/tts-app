@@ -44,15 +44,7 @@ export default function ReportsPage() {
       });
     } catch (error) {
       console.error('Failed to fetch reports:', error);
-      // Mock data
-      setReportData({
-        totalRevenue: 45670,
-        totalPayouts: 32450,
-        platformCommission: 13220,
-        totalBookings: 156,
-        avgBookingValue: 292.76,
-        periodComparison: { revenue: 12, payouts: 8 },
-      });
+      setReportData(null);
     } finally {
       setIsLoading(false);
     }

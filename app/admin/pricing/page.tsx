@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, DollarSign } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Plus, Edit2, Trash2, DollarSign, AlertCircle, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -9,6 +9,7 @@ import { LoadingOverlay } from '@/components/ui/LoadingSpinner';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { listPricingRules, createPricingRule, updatePricingRule, deletePricingRule } from '@/lib/api/admin.api';
 import { formatCurrency } from '@/lib/utils/date';
+import { getContextualErrorMessage } from '@/lib/utils/error-handler';
 
 interface PricingRule {
   id: string;
@@ -20,11 +21,22 @@ interface PricingRule {
 }
 
 const ruleTypes = ['BASE_FARE', 'PER_MILE', 'TIME_SURCHARGE', 'HOLIDAY_SURCHARGE', 'AIRPORT_FEE'];
-const vehicleTypes = ['SALOON', 'ESTATE', 'MPV', 'EXECUTIVE', 'MINIBUS'];
+const vehicleTypes = [
+  'SALOON',
+  'ESTATE',
+  'GREEN_CAR',
+  'MPV',
+  'EXECUTIVE',
+  'EXECUTIVE_LUXURY',
+  'EXECUTIVE_PEOPLE_CARRIER',
+  'MINIBUS',
+];
 
 export default function PricingRulesPage() {
   const [rules, setRules] = useState<PricingRule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingRule, setEditingRule] = useState<PricingRule | null>(null);
   const [deleteRule, setDeleteRule] = useState<PricingRule | null>(null);
@@ -33,13 +45,10 @@ export default function PricingRulesPage() {
   // Form state
   const [formData, setFormData] = useState({ ruleType: 'BASE_FARE', vehicleType: '', value: '', description: '', isActive: true });
 
-  useEffect(() => {
-    fetchRules();
-  }, []);
-
-  const fetchRules = async () => {
+  const fetchRules = useCallback(async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await listPricingRules();
       // API returns { success, data: { pricingRules: [...] } }
       const rulesData = response.data?.pricingRules || response.data?.pricing_rules || response.data || [];
@@ -53,18 +62,25 @@ export default function PricingRulesPage() {
         isActive: rule.isActive as boolean,
       })) : [];
       setRules(transformedRules);
-    } catch (error) {
-      console.error('Failed to fetch rules:', error);
+    } catch (err: unknown) {
+      console.error('Failed to fetch rules:', err);
+      const errorMessage = getContextualErrorMessage(err, 'fetch');
+      setError(errorMessage);
       setRules([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchRules();
+  }, [fetchRules]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
+      setActionError(null);
       const data = {
         ruleType: formData.ruleType,
         vehicleType: formData.vehicleType || undefined,
@@ -80,8 +96,10 @@ export default function PricingRulesPage() {
       }
       await fetchRules();
       resetForm();
-    } catch (error) {
-      console.error('Failed to save rule:', error);
+    } catch (err: unknown) {
+      console.error('Failed to save rule:', err);
+      const errorMessage = getContextualErrorMessage(err, editingRule ? 'update' : 'submit');
+      setActionError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -91,11 +109,15 @@ export default function PricingRulesPage() {
     if (!deleteRule) return;
     try {
       setIsSubmitting(true);
+      setActionError(null);
       await deletePricingRule(deleteRule.id);
       await fetchRules();
       setDeleteRule(null);
-    } catch (error) {
-      console.error('Failed to delete rule:', error);
+    } catch (err: unknown) {
+      console.error('Failed to delete rule:', err);
+      const errorMessage = getContextualErrorMessage(err, 'delete');
+      setActionError(errorMessage);
+      setDeleteRule(null);
     } finally {
       setIsSubmitting(false);
     }
@@ -115,6 +137,24 @@ export default function PricingRulesPage() {
 
   if (isLoading) return <LoadingOverlay message="Loading pricing rules..." />;
 
+  if (error) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
+        <div className="rounded-full bg-error-100 p-4">
+          <AlertCircle className="h-8 w-8 text-error-600" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-neutral-900">Unable to Load Pricing Rules</h2>
+          <p className="mt-1 text-neutral-600">{error}</p>
+        </div>
+        <Button onClick={fetchRules} variant="primary">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -124,6 +164,19 @@ export default function PricingRulesPage() {
         </div>
         <Button onClick={() => setShowForm(true)}><Plus className="w-4 h-4 mr-2" /> Add Rule</Button>
       </div>
+
+      {/* Action Error Display */}
+      {actionError && (
+        <div className="flex items-center justify-between rounded-lg border border-error-200 bg-error-50 p-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-error-600" />
+            <p className="text-sm text-error-700">{actionError}</p>
+          </div>
+          <Button onClick={() => setActionError(null)} variant="ghost" size="sm">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Form */}
       {showForm && (

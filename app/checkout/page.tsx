@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { CheckoutContent } from './_components/CheckoutContent';
 
 export const metadata: Metadata = {
-  title: 'Checkout | TTS Airport Transfers',
-  description: 'Complete your airport transfer booking and payment.',
+  title: 'Checkout | TTS Transfers',
+  description: 'Complete your transfer booking and payment.',
 };
 
 export default function CheckoutPage() {

@@ -17,11 +17,14 @@ import {
 } from 'lucide-react';
 import { getCurrentUser } from '@/lib/api/auth.api';
 import { createBooking, createReturnBooking } from '@/lib/api/booking.api';
+import { getContextualErrorMessage } from '@/lib/utils/error-handler';
 import type { User } from '@/lib/types/auth.types';
-import type { SingleJourneyQuote, ReturnJourneyQuote } from '@/lib/types/quote.types';
+import type { SingleJourneyQuote, ReturnJourneyQuote, StopPoint } from '@/lib/types/quote.types';
 import { ServiceType, VehicleType } from '@/lib/types/enums';
+import { getFlippedServiceType } from '@/lib/utils/service-type';
 import { AuthSection } from './AuthSection';
 import { PaymentSection } from './PaymentSection';
+import { getVehicleLabel } from '@/lib/hooks';
 
 const MAX_BOOKING_ATTEMPTS = 3;
 
@@ -29,6 +32,7 @@ interface QuoteData {
   journeyType: 'one-way' | 'return';
   pickup: { address: string; postcode: string | null; lat: number; lng: number };
   dropoff: { address: string; postcode: string | null; lat: number; lng: number };
+  stops?: StopPoint[];
   serviceType: string;
   pickupDatetime: string;
   returnDatetime?: string;
@@ -37,6 +41,7 @@ interface QuoteData {
   luggage: number;
   vehicleType: string;
   childSeats: number;
+  boosterSeats: number;
   wheelchairAccess: boolean;
   pets: boolean;
   meetAndGreet: boolean;
@@ -130,15 +135,13 @@ export function CheckoutContent() {
     try {
       const quote = quoteData.quote;
 
-      // Build special requirements string
+      // Build special requirements string (wheelchair, pets, and notes only)
       const specialReqs: string[] = [];
-      if (quoteData.childSeats > 0) specialReqs.push(`${quoteData.childSeats} child seat(s)`);
-      if (quoteData.wheelchairAccess) specialReqs.push('Wheelchair access');
+      if (quoteData.wheelchairAccess) specialReqs.push('Wheelchair access required');
       if (quoteData.pets) specialReqs.push('Travelling with pets');
       if (quoteData.specialNotes) specialReqs.push(quoteData.specialNotes);
 
       if (quoteData.journeyType === 'one-way') {
-        // Create single booking
         const singleQuote = quote as SingleJourneyQuote;
         const booking = await createBooking({
           pickupAddress: quoteData.pickup.address,
@@ -149,13 +152,17 @@ export function CheckoutContent() {
           dropoffPostcode: quoteData.dropoff.postcode || '',
           dropoffLat: quoteData.dropoff.lat,
           dropoffLng: quoteData.dropoff.lng,
-          pickupDatetime: new Date(quoteData.pickupDatetime),
+          pickupDatetime: new Date(quoteData.pickupDatetime).toISOString(),
           passengerCount: quoteData.passengers,
           luggageCount: quoteData.luggage,
           vehicleType: quoteData.vehicleType as VehicleType,
           serviceType: quoteData.serviceType as ServiceType,
           flightNumber: quoteData.flightNumber,
-          specialRequirements: specialReqs.join('; ') || undefined,
+          specialRequirements: specialReqs.length > 0 ? specialReqs.join('; ') : undefined,
+          childSeats: quoteData.childSeats || 0,
+          boosterSeats: quoteData.boosterSeats || 0,
+          hasMeetAndGreet: quoteData.meetAndGreet || false,
+          stops: quoteData.stops || [],
           customerName: `${quoteData.customerDetails.firstName} ${quoteData.customerDetails.lastName}`,
           customerEmail: quoteData.customerDetails.email,
           customerPhone: quoteData.customerDetails.phone,
@@ -172,7 +179,6 @@ export function CheckoutContent() {
         setRetryCount(0);
         sessionStorage.removeItem('bookingRetryCount');
       } else {
-        // Create return booking
         const returnQuote = quote as ReturnJourneyQuote;
         const bookingGroup = await createReturnBooking({
           isReturnJourney: true,
@@ -185,20 +191,23 @@ export function CheckoutContent() {
             dropoffPostcode: quoteData.dropoff.postcode || '',
             dropoffLat: quoteData.dropoff.lat,
             dropoffLng: quoteData.dropoff.lng,
-            pickupDatetime: new Date(quoteData.pickupDatetime),
+            pickupDatetime: new Date(quoteData.pickupDatetime).toISOString(),
             passengerCount: quoteData.passengers,
             luggageCount: quoteData.luggage,
             vehicleType: quoteData.vehicleType as VehicleType,
             serviceType: quoteData.serviceType as ServiceType,
             flightNumber: quoteData.flightNumber,
-            specialRequirements: specialReqs.join('; ') || undefined,
+            specialRequirements: specialReqs.length > 0 ? specialReqs.join('; ') : undefined,
+            childSeats: quoteData.childSeats || 0,
+            boosterSeats: quoteData.boosterSeats || 0,
+            hasMeetAndGreet: quoteData.meetAndGreet || false,
+            stops: quoteData.stops || [],
             customerName: `${quoteData.customerDetails.firstName} ${quoteData.customerDetails.lastName}`,
             customerEmail: quoteData.customerDetails.email,
             customerPhone: quoteData.customerDetails.phone,
             customerPrice: returnQuote.outbound.totalPrice,
           },
           returnJourney: {
-            // Swap pickup and dropoff for return
             pickupAddress: quoteData.dropoff.address,
             pickupPostcode: quoteData.dropoff.postcode || '',
             pickupLat: quoteData.dropoff.lat,
@@ -207,12 +216,16 @@ export function CheckoutContent() {
             dropoffPostcode: quoteData.pickup.postcode || '',
             dropoffLat: quoteData.pickup.lat,
             dropoffLng: quoteData.pickup.lng,
-            pickupDatetime: new Date(quoteData.returnDatetime!),
+            pickupDatetime: new Date(quoteData.returnDatetime!).toISOString(),
             passengerCount: quoteData.passengers,
             luggageCount: quoteData.luggage,
             vehicleType: quoteData.vehicleType as VehicleType,
-            serviceType: quoteData.serviceType as ServiceType,
-            specialRequirements: specialReqs.join('; ') || undefined,
+            serviceType: getFlippedServiceType(quoteData.serviceType as ServiceType),
+            specialRequirements: specialReqs.length > 0 ? specialReqs.join('; ') : undefined,
+            childSeats: quoteData.childSeats || 0,
+            boosterSeats: quoteData.boosterSeats || 0,
+            hasMeetAndGreet: quoteData.meetAndGreet || false,
+            stops: [],
             customerName: `${quoteData.customerDetails.firstName} ${quoteData.customerDetails.lastName}`,
             customerEmail: quoteData.customerDetails.email,
             customerPhone: quoteData.customerDetails.phone,
@@ -231,11 +244,11 @@ export function CheckoutContent() {
         setRetryCount(0);
         sessionStorage.removeItem('bookingRetryCount');
       }
-    } catch (err) {
+    } catch (err: unknown) {
       const currentRetryCount = getRetryCount();
       console.error(`Booking creation failed (attempt ${currentRetryCount}/${MAX_BOOKING_ATTEMPTS}):`, err);
 
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create booking.';
+      const errorMessage = getContextualErrorMessage(err, 'submit');
       const attemptsRemaining = MAX_BOOKING_ATTEMPTS - currentRetryCount;
 
       if (attemptsRemaining > 0) {
@@ -305,16 +318,7 @@ export function CheckoutContent() {
     });
   };
 
-  const getVehicleLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      SALOON: 'Saloon',
-      ESTATE: 'Estate',
-      MPV: 'MPV / People Carrier',
-      EXECUTIVE: 'Executive',
-      MINIBUS: 'Minibus',
-    };
-    return labels[type] || type;
-  };
+  // getVehicleLabel imported from lib/hooks
 
   if (loading) {
     return (

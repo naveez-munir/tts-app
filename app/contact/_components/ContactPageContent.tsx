@@ -33,7 +33,6 @@ export default function ContactPageContent() {
           <PageHero
             badge="We're here to help"
             title={contactPageData.hero.title}
-            subtitle={contactPageData.hero.subtitle}
           />
 
           {/* Contact Information Cards */}

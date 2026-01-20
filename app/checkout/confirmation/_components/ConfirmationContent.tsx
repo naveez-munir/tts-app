@@ -161,8 +161,8 @@ export function ConfirmationContent() {
                   01onal 234 567 890
                 </a>{' '}
                 or email{' '}
-                <a href="mailto:support@tts-transfers.co.uk" className="text-primary-600 hover:underline">
-                  support@tts-transfers.co.uk
+                <a href="mailto:customerservice@totaltravelsolution.com" className="text-primary-600 hover:underline">
+                  customerservice@totaltravelsolution.com
                 </a>
               </p>
             </div>

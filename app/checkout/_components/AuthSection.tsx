@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Lock, User, Mail, Phone } from 'lucide-react';
+import { Lock, User, Mail, Phone, AlertCircle } from 'lucide-react';
 import { authApi } from '@/lib/api';
 import { LoginSchema, RegisterSchema } from '@/lib/types';
+import { getContextualErrorMessage, isNetworkError } from '@/lib/utils/error-handler';
 import type { User as UserType } from '@/lib/types/auth.types';
 import { UserRole } from '@/lib/types/enums';
 
@@ -78,22 +79,35 @@ export function AuthSection({
       });
 
       onSuccess(user);
-    } catch (error: any) {
-      if (error.issues) {
+    } catch (error: unknown) {
+      // Handle Zod validation errors
+      if (error && typeof error === 'object' && 'issues' in error) {
+        const zodError = error as { issues: Array<{ path: string[]; message: string }> };
         const fieldErrors: Record<string, string> = {};
-        error.issues.forEach((issue: any) => {
+        zodError.issues.forEach((issue) => {
           const field = issue.path[0];
           fieldErrors[field] = issue.message;
         });
         setErrors(fieldErrors);
-      } else if (error.error) {
+      } else if (isNetworkError(error)) {
+        // Handle network errors
+        setErrors({ general: getContextualErrorMessage(error, 'submit') });
+      } else if (error && typeof error === 'object' && 'response' in error) {
+        // Handle API errors (AxiosError)
+        const axiosError = error as { response?: { data?: { error?: { message?: string } } } };
+        const errorMessage = axiosError.response?.data?.error?.message || 'Registration failed';
+
         // Check if it's a duplicate email error
-        if (error.error.message?.includes('already exists') || error.error.message?.includes('duplicate')) {
+        if (errorMessage.includes('already exists') || errorMessage.includes('duplicate')) {
           setErrors({ general: 'An account with this email already exists. Please sign in instead.' });
           setMode('login');
         } else {
-          setErrors({ general: error.error.message || 'Registration failed' });
+          setErrors({ general: errorMessage });
         }
+      } else if (error && typeof error === 'object' && 'error' in error) {
+        // Handle formatted network errors from API client
+        const apiError = error as { error: { message?: string } };
+        setErrors({ general: apiError.error.message || 'Unable to connect to the server' });
       } else {
         setErrors({ general: 'An unexpected error occurred. Please try again.' });
       }
@@ -111,16 +125,28 @@ export function AuthSection({
       const validatedData = LoginSchema.parse(loginData);
       const { user } = await authApi.login(validatedData);
       onSuccess(user);
-    } catch (error: any) {
-      if (error.issues) {
+    } catch (error: unknown) {
+      // Handle Zod validation errors
+      if (error && typeof error === 'object' && 'issues' in error) {
+        const zodError = error as { issues: Array<{ path: string[]; message: string }> };
         const fieldErrors: Record<string, string> = {};
-        error.issues.forEach((issue: any) => {
+        zodError.issues.forEach((issue) => {
           const field = issue.path[0];
           fieldErrors[field] = issue.message;
         });
         setErrors(fieldErrors);
-      } else if (error.error) {
-        setErrors({ general: error.error.message || 'Invalid email or password' });
+      } else if (isNetworkError(error)) {
+        // Handle network errors
+        setErrors({ general: getContextualErrorMessage(error, 'submit') });
+      } else if (error && typeof error === 'object' && 'response' in error) {
+        // Handle API errors (AxiosError)
+        const axiosError = error as { response?: { data?: { error?: { message?: string } } } };
+        const errorMessage = axiosError.response?.data?.error?.message || 'Invalid email or password';
+        setErrors({ general: errorMessage });
+      } else if (error && typeof error === 'object' && 'error' in error) {
+        // Handle formatted network errors from API client
+        const apiError = error as { error: { message?: string } };
+        setErrors({ general: apiError.error.message || 'Unable to connect to the server' });
       } else {
         setErrors({ general: 'An unexpected error occurred. Please try again.' });
       }
@@ -133,8 +159,9 @@ export function AuthSection({
     <div className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-neutral-200 sm:p-8">
       {/* Error Message */}
       {errors.general && (
-        <div className="mb-4 rounded-lg bg-red-50 p-3 ring-1 ring-red-200">
-          <p className="text-sm text-red-700">{errors.general}</p>
+        <div className="mb-4 flex items-start gap-3 rounded-lg bg-error-50 p-3 ring-1 ring-error-200">
+          <AlertCircle className="h-5 w-5 flex-shrink-0 text-error-600" />
+          <p className="text-sm text-error-700">{errors.general}</p>
         </div>
       )}
 

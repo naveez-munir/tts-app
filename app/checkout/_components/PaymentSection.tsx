@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/Button';
-import { CreditCard, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { CreditCard, Lock, AlertCircle } from 'lucide-react';
 import type { User } from '@/lib/types/auth.types';
-import {
-  createPaymentIntent,
-  createGroupPaymentIntent,
-  confirmPayment,
-  confirmGroupPayment,
-} from '@/lib/api/payment.api';
+import { createPaymentIntent, createGroupPaymentIntent } from '@/lib/api/payment.api';
+import { getBookingById, getBookingGroupById } from '@/lib/api/booking.api';
+import { pollUntil } from '@/lib/utils/polling';
+import { getContextualErrorMessage } from '@/lib/utils/error-handler';
+import { PollingLoadingState } from './PollingLoadingState';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -36,6 +35,10 @@ interface PaymentFormProps {
   paymentIntentId: string;
 }
 
+// Polling configuration
+const POLLING_INTERVAL_MS = 2000;
+const MAX_POLLING_ATTEMPTS = 30; // 60 seconds total
+
 function PaymentForm({
   user,
   totalPrice,
@@ -50,6 +53,9 @@ function PaymentForm({
   const elements = useElements();
   const [error, setError] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
+  const [pollingAttempt, setPollingAttempt] = useState(0);
+  const [pollingTimedOut, setPollingTimedOut] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,27 +80,64 @@ function PaymentForm({
         return;
       }
 
-      // Confirm payment with backend
-      if (bookingGroupId) {
-        await confirmGroupPayment({
-          bookingGroupId,
-          paymentIntentId,
-        });
-      } else if (bookingId) {
-        await confirmPayment({
-          bookingId,
-          paymentIntentId,
-        });
-      }
-
-      onSuccess(paymentIntentId);
-    } catch (err) {
-      console.error('Payment confirmation failed:', err);
-      setError(err instanceof Error ? err.message : 'Payment failed. Please try again.');
-    } finally {
+      // Payment confirmed with Stripe - now poll for webhook processing
       setIsConfirming(false);
+      setIsPolling(true);
+      setPollingAttempt(0);
+
+      // Poll for booking status to become PAID (set by webhook)
+      const pollResult = await pollUntil({
+        fetcher: async () => {
+          if (bookingGroupId) {
+            const group = await getBookingGroupById(bookingGroupId);
+            // Check if all bookings in group are PAID
+            const allPaid = group.bookings?.every((b) => b.status === 'PAID') ?? false;
+            return { isPaid: allPaid, data: group };
+          } else if (bookingId) {
+            const booking = await getBookingById(bookingId);
+            return { isPaid: booking.status === 'PAID', data: booking };
+          }
+          throw new Error('No booking ID provided');
+        },
+        condition: (result) => result.isPaid,
+        intervalMs: POLLING_INTERVAL_MS,
+        maxAttempts: MAX_POLLING_ATTEMPTS,
+        onAttempt: (attempt) => {
+          setPollingAttempt(attempt);
+        },
+      });
+
+      if (pollResult.success) {
+        // Booking is confirmed PAID by webhook
+        onSuccess(paymentIntentId);
+      } else {
+        // Polling timed out - payment likely succeeded but webhook delayed
+        // Show graceful message and allow user to continue
+        setPollingTimedOut(true);
+        console.warn('Polling timed out waiting for webhook. Payment may still be processing.');
+        // Still call onSuccess after timeout - payment was confirmed by Stripe
+        setTimeout(() => {
+          onSuccess(paymentIntentId);
+        }, 3000);
+      }
+    } catch (err: unknown) {
+      console.error('Payment process failed:', err);
+      const errorMessage = getContextualErrorMessage(err, 'payment');
+      setError(errorMessage);
+      setIsPolling(false);
     }
   };
+
+  // Show polling state
+  if (isPolling) {
+    return (
+      <PollingLoadingState
+        attempt={pollingAttempt}
+        maxAttempts={MAX_POLLING_ATTEMPTS}
+        timedOut={pollingTimedOut}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -102,7 +145,7 @@ function PaymentForm({
       <div className="rounded-lg bg-neutral-50 p-4">
         <p className="text-sm text-neutral-600">Paying as:</p>
         <p className="font-semibold text-neutral-900">
-          {user.first_name} {user.last_name}
+          {user.firstName} {user.lastName}
         </p>
         <p className="text-sm text-neutral-600">{user.email}</p>
       </div>
@@ -216,9 +259,10 @@ export function PaymentSection({
         } else {
           throw new Error('No booking ID provided');
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('Failed to create payment intent:', err);
-        setError(err instanceof Error ? err.message : 'Failed to initialize payment');
+        const errorMessage = getContextualErrorMessage(err, 'payment');
+        setError(errorMessage);
       } finally {
         setIsCreatingIntent(false);
       }

@@ -68,7 +68,7 @@ export function CookiesContent() {
         <ul className="list-disc pl-6 mb-4 text-neutral-700 space-y-2">
           <li><strong>Stripe:</strong> For secure payment processing</li>
           <li><strong>Google Maps:</strong> For location services</li>
-          <li><strong>Analytics providers:</strong> To understand user behavior</li>
+          <li><strong>Analytics providers:</strong> To understand user behaviour</li>
         </ul>
       </section>
 
@@ -81,7 +81,7 @@ export function CookiesContent() {
 
         <h3 className="text-xl font-semibold text-neutral-800 mb-3">4.2 Persistent Cookies</h3>
         <p className="text-neutral-700 leading-relaxed mb-4">
-          These cookies remain on your device for a set period or until you delete them. They help us recognize you 
+          These cookies remain on your device for a set period or until you delete them. They help us recognise you
           when you return to our platform.
         </p>
       </section>
@@ -126,7 +126,7 @@ export function CookiesContent() {
           If you have questions about our use of cookies, please contact us:
         </p>
         <div className="bg-neutral-50 p-4 rounded-lg">
-          <p className="text-neutral-700"><strong>Email:</strong> privacy@totaltravelsolution.co.uk</p>
+          <p className="text-neutral-700"><strong>Email:</strong> customerservice@totaltravelsolution.com</p>
           <p className="text-neutral-700"><strong>Company:</strong> Total Travel Solution Group Limited</p>
           <p className="text-neutral-700"><strong>Company Number:</strong> 16910276</p>
         </div>

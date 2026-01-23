@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Calendar, Clock, MapPin, AlertCircle, RefreshCw, ArrowRight } from 'lucide-react';
 import BookingCard from '@/components/features/dashboard/BookingCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Button } from '@/components/ui/Button';
 import { getOrganizedBookings } from '@/lib/api';
+import { getContextualErrorMessage } from '@/lib/utils/error-handler';
 import type { Booking } from '@/lib/types';
 
 export default function UpcomingTripsContent() {
@@ -14,7 +16,7 @@ export default function UpcomingTripsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUpcomingBookings = async () => {
+  const fetchUpcomingBookings = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -35,17 +37,18 @@ export default function UpcomingTripsContent() {
         .sort((a, b) => new Date(a.pickupDatetime).getTime() - new Date(b.pickupDatetime).getTime());
 
       setUpcomingBookings(upcoming);
-    } catch (err) {
-      setError('Failed to load upcoming trips. Please try again.');
+    } catch (err: unknown) {
+      const errorMessage = getContextualErrorMessage(err, 'fetch');
+      setError(errorMessage);
       console.error('Error fetching bookings:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUpcomingBookings();
-  }, []);
+  }, [fetchUpcomingBookings]);
 
   // Group bookings by date
   const groupedByDate = upcomingBookings.reduce(
@@ -76,15 +79,17 @@ export default function UpcomingTripsContent() {
   if (error) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-        <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-neutral-600">{error}</p>
-        <button
-          onClick={fetchUpcomingBookings}
-          className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
-        >
-          <RefreshCw className="h-4 w-4" />
+        <div className="rounded-full bg-error-100 p-4">
+          <AlertCircle className="h-8 w-8 text-error-600" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-neutral-900">Unable to Load Upcoming Trips</h2>
+          <p className="mt-1 text-neutral-600">{error}</p>
+        </div>
+        <Button onClick={fetchUpcomingBookings} variant="primary">
+          <RefreshCw className="mr-2 h-4 w-4" />
           Try Again
-        </button>
+        </Button>
       </div>
     );
   }
@@ -95,7 +100,7 @@ export default function UpcomingTripsContent() {
       <div>
         <h1 className="text-2xl font-bold text-neutral-900">Upcoming Trips</h1>
         <p className="mt-1 text-neutral-600">
-          Your scheduled airport transfers and journeys
+          Your scheduled transfers and journeys
         </p>
       </div>
 
@@ -130,7 +135,7 @@ export default function UpcomingTripsContent() {
         <EmptyState
           icon={Calendar}
           title="No upcoming trips"
-          description="You don't have any scheduled trips. Book your next airport transfer now!"
+          description="You don't have any scheduled trips. Book your next transfer now!"
           action={
             <Link
               href="/quote"

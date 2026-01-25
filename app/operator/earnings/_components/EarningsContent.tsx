@@ -2,37 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import {
-  Wallet,
   TrendingUp,
-  Calendar,
   AlertCircle,
   RefreshCw,
-  Download,
   CheckCircle,
   Clock,
   Banknote,
+  Loader2,
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import { getOperatorDashboard } from '@/lib/api';
+import { getMyEarnings } from '@/lib/api/payout.api';
+import { getContextualErrorMessage, isNotFoundError } from '@/lib/utils/error-handler';
 
 interface EarningsData {
   totalEarnings: number;
   pendingPayouts: number;
   completedPayouts: number;
-  recentTransactions: Transaction[];
-}
-
-interface Transaction {
-  id: string;
-  type: 'EARNING' | 'PAYOUT';
-  amount: number;
-  status: 'PENDING' | 'COMPLETED' | 'PROCESSING';
-  description: string;
-  createdAt: string;
-  bookingReference?: string;
+  processingPayouts: number;
 }
 
 export default function EarningsContent() {
@@ -44,20 +31,28 @@ export default function EarningsContent() {
     setLoading(true);
     setError(null);
     try {
-      // Use dashboard data for now - in production, would have dedicated earnings endpoint
-      const dashboard = await getOperatorDashboard();
-      // Calculate completed payouts as total earnings minus pending
-      const totalEarnings = dashboard.totalEarnings || 0;
-      const pendingPayouts = dashboard.pendingPayouts || 0;
+      const data = await getMyEarnings();
       setEarnings({
-        totalEarnings,
-        pendingPayouts,
-        completedPayouts: Math.max(0, totalEarnings - pendingPayouts),
-        recentTransactions: [], // No transactions endpoint yet - will be empty for now
+        totalEarnings: data?.totalEarnings ?? 0,
+        pendingPayouts: data?.pendingPayouts ?? 0,
+        completedPayouts: data?.completedPayouts ?? 0,
+        processingPayouts: data?.processingPayouts ?? 0,
       });
-    } catch (err) {
-      setError('Failed to load earnings data. Please try again.');
-      console.error('Error fetching earnings:', err);
+    } catch (err: unknown) {
+      // Handle "Operator profile not found" - show empty earnings instead of error
+      if (isNotFoundError(err)) {
+        // New operator with no profile/earnings yet - show zeros
+        setEarnings({
+          totalEarnings: 0,
+          pendingPayouts: 0,
+          completedPayouts: 0,
+          processingPayouts: 0,
+        });
+      } else {
+        const errorMessage = getContextualErrorMessage(err, 'fetch');
+        setError(errorMessage);
+        console.error('Error fetching earnings:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -66,25 +61,6 @@ export default function EarningsContent() {
   useEffect(() => {
     fetchEarnings();
   }, []);
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const getStatusVariant = (status: string): 'success' | 'warning' | 'info' => {
-    switch (status) {
-      case 'COMPLETED':
-        return 'success';
-      case 'PROCESSING':
-        return 'info';
-      default:
-        return 'warning';
-    }
-  };
 
   if (loading) {
     return (
@@ -97,8 +73,13 @@ export default function EarningsContent() {
   if (error) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-        <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-neutral-600">{error}</p>
+        <div className="rounded-full bg-error-100 p-4">
+          <AlertCircle className="h-8 w-8 text-error-600" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-neutral-900">Unable to Load Earnings</h2>
+          <p className="mt-1 text-neutral-600">{error}</p>
+        </div>
         <Button onClick={fetchEarnings} variant="primary">
           <RefreshCw className="mr-2 h-4 w-4" />
           Try Again
@@ -122,7 +103,7 @@ export default function EarningsContent() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
           <div className="flex items-center justify-between">
             <div>
@@ -140,10 +121,11 @@ export default function EarningsContent() {
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-neutral-500">Pending Payouts</p>
+              <p className="text-sm font-medium text-neutral-500">Pending</p>
               <p className="mt-1 text-2xl font-bold text-warning-600">
                 £{(earnings?.pendingPayouts || 0).toFixed(2)}
               </p>
+              <p className="mt-0.5 text-xs text-neutral-400">Awaiting payout</p>
             </div>
             <div className="rounded-lg bg-warning-100 p-2.5">
               <Clock className="h-5 w-5 text-warning-600" />
@@ -151,13 +133,29 @@ export default function EarningsContent() {
           </div>
         </div>
 
+        <div className="rounded-xl border border-accent-200 bg-accent-50 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-accent-700">Processing</p>
+              <p className="mt-1 text-2xl font-bold text-accent-700">
+                £{(earnings?.processingPayouts || 0).toFixed(2)}
+              </p>
+              <p className="mt-0.5 text-xs text-accent-600">Being transferred</p>
+            </div>
+            <div className="rounded-lg bg-accent-100 p-2.5">
+              <Loader2 className="h-5 w-5 text-accent-600" />
+            </div>
+          </div>
+        </div>
+
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-neutral-500">Completed Payouts</p>
+              <p className="text-sm font-medium text-neutral-500">Paid Out</p>
               <p className="mt-1 text-2xl font-bold text-neutral-900">
                 £{(earnings?.completedPayouts || 0).toFixed(2)}
               </p>
+              <p className="mt-0.5 text-xs text-neutral-400">Completed</p>
             </div>
             <div className="rounded-lg bg-neutral-100 p-2.5">
               <CheckCircle className="h-5 w-5 text-neutral-600" />
@@ -181,77 +179,38 @@ export default function EarningsContent() {
         </div>
       </div>
 
-      {/* Recent Transactions */}
-      <div className="rounded-xl border border-neutral-200 bg-white">
-        <div className="flex items-center justify-between border-b border-neutral-200 p-4">
-          <h2 className="text-lg font-semibold text-neutral-900">Recent Transactions</h2>
-          <Button variant="ghost" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
+      {/* Payout Breakdown */}
+      <div className="rounded-xl border border-neutral-200 bg-white p-5">
+        <h2 className="mb-4 text-lg font-semibold text-neutral-900">Payout Breakdown</h2>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between rounded-lg bg-neutral-50 p-3">
+            <div className="flex items-center gap-3">
+              <Clock className="h-4 w-4 text-warning-500" />
+              <span className="text-sm text-neutral-700">Awaiting eligibility</span>
+            </div>
+            <span className="font-medium text-warning-600">
+              £{(earnings?.pendingPayouts || 0).toFixed(2)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg bg-accent-50 p-3">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-4 w-4 text-accent-500" />
+              <span className="text-sm text-neutral-700">Bank transfer in progress</span>
+            </div>
+            <span className="font-medium text-accent-600">
+              £{(earnings?.processingPayouts || 0).toFixed(2)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg bg-success-50 p-3">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-4 w-4 text-success-500" />
+              <span className="text-sm text-neutral-700">Successfully paid</span>
+            </div>
+            <span className="font-medium text-success-600">
+              £{(earnings?.completedPayouts || 0).toFixed(2)}
+            </span>
+          </div>
         </div>
-
-        {(!earnings?.recentTransactions || earnings.recentTransactions.length === 0) ? (
-          <div className="p-8">
-            <EmptyState
-              icon={Wallet}
-              title="No transactions yet"
-              description="Complete jobs to start earning. Your transactions will appear here."
-            />
-          </div>
-        ) : (
-          <div className="divide-y divide-neutral-100">
-            {earnings.recentTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between p-4 hover:bg-neutral-50"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`rounded-lg p-2 ${
-                      transaction.type === 'EARNING'
-                        ? 'bg-success-100'
-                        : 'bg-primary-100'
-                    }`}
-                  >
-                    {transaction.type === 'EARNING' ? (
-                      <TrendingUp className="h-4 w-4 text-success-600" />
-                    ) : (
-                      <Banknote className="h-4 w-4 text-primary-600" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-neutral-900">
-                      {transaction.description}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-neutral-500">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(transaction.createdAt)}
-                      {transaction.bookingReference && (
-                        <span className="font-mono">#{transaction.bookingReference}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p
-                    className={`font-semibold ${
-                      transaction.type === 'EARNING'
-                        ? 'text-success-600'
-                        : 'text-neutral-900'
-                    }`}
-                  >
-                    {transaction.type === 'EARNING' ? '+' : '-'}£
-                    {transaction.amount.toFixed(2)}
-                  </p>
-                  <StatusBadge variant={getStatusVariant(transaction.status)} className="mt-1">
-                    {transaction.status}
-                  </StatusBadge>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

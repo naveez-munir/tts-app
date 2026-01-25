@@ -16,7 +16,9 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { useToast } from '@/components/ui/Toast';
 import { bidApi } from '@/lib/api';
+import { getContextualErrorMessage, extractErrorMessage } from '@/lib/utils/error-handler';
 import type { Bid } from '@/lib/types';
 
 type BidWithJob = Bid & {
@@ -32,20 +34,69 @@ type BidWithJob = Bid & {
   };
 };
 
+/**
+ * Normalize nested booking from snake_case API response
+ */
+function normalizeNestedBooking(data: Record<string, unknown>): BidWithJob['job'] {
+  const bookingData = data.booking as Record<string, unknown> | undefined;
+  if (!bookingData) return { booking: undefined };
+
+  return {
+    booking: {
+      bookingReference: (bookingData.bookingReference ?? bookingData.booking_reference ?? '') as string,
+      pickupAddress: (bookingData.pickupAddress ?? bookingData.pickup_address ?? '') as string,
+      dropoffAddress: (bookingData.dropoffAddress ?? bookingData.dropoff_address ?? '') as string,
+      pickupDatetime: (bookingData.pickupDatetime ?? bookingData.pickup_datetime ?? '') as string,
+      customerPrice: Number(bookingData.customerPrice ?? bookingData.customer_price ?? bookingData.quotedPrice ?? bookingData.quoted_price ?? 0),
+      vehicleType: (bookingData.vehicleType ?? bookingData.vehicle_type ?? '') as string,
+    },
+  };
+}
+
+/**
+ * Normalize bid from snake_case API response to camelCase
+ */
+function normalizeBid(data: Record<string, unknown>): BidWithJob {
+  const jobData = data.job as Record<string, unknown> | undefined;
+
+  return {
+    id: (data.id as string) || '',
+    jobId: (data.jobId ?? data.job_id ?? '') as string,
+    operatorId: (data.operatorId ?? data.operator_id ?? '') as string,
+    bidAmount: Number(data.bidAmount ?? data.bid_amount ?? 0),
+    status: (data.status ?? 'PENDING') as Bid['status'],
+    notes: (data.notes ?? null) as string | null,
+    submittedAt: (data.submittedAt ?? data.submitted_at ?? data.createdAt ?? data.created_at ?? '') as string,
+    updatedAt: (data.updatedAt ?? data.updated_at ?? '') as string,
+    job: jobData ? normalizeNestedBooking(jobData) : undefined,
+  };
+}
+
+/**
+ * Normalize an array of bids
+ */
+function normalizeBids(data: unknown[]): BidWithJob[] {
+  return data.map((item) => normalizeBid(item as Record<string, unknown>));
+}
+
 export default function MyBidsContent() {
   const [bids, setBids] = useState<BidWithJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [withdrawingBid, setWithdrawingBid] = useState<string | null>(null);
+  const toast = useToast();
 
   const fetchBids = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await bidApi.getOperatorBids();
-      setBids(data as BidWithJob[]);
-    } catch (err) {
-      setError('Failed to load your bids. Please try again.');
+      // Normalize snake_case API response to camelCase
+      const normalized = normalizeBids(data as unknown[]);
+      setBids(normalized);
+    } catch (err: unknown) {
+      const errorMessage = getContextualErrorMessage(err, 'fetch');
+      setError(errorMessage);
       console.error('Error fetching bids:', err);
     } finally {
       setLoading(false);
@@ -62,9 +113,11 @@ export default function MyBidsContent() {
     setWithdrawingBid(bidId);
     try {
       await bidApi.withdrawBid(bidId);
+      toast.success('Bid withdrawn successfully');
       await fetchBids();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to withdraw bid');
+    } catch (err: unknown) {
+      const errorMessage = extractErrorMessage(err);
+      toast.error(errorMessage);
     } finally {
       setWithdrawingBid(null);
     }
@@ -129,8 +182,13 @@ export default function MyBidsContent() {
   if (error) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-        <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-neutral-600">{error}</p>
+        <div className="rounded-full bg-error-100 p-4">
+          <AlertCircle className="h-8 w-8 text-error-600" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-neutral-900">Unable to Load Bids</h2>
+          <p className="mt-1 text-neutral-600">{error}</p>
+        </div>
         <Button onClick={fetchBids} variant="primary">
           <RefreshCw className="mr-2 h-4 w-4" />
           Try Again

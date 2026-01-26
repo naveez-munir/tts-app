@@ -6,12 +6,12 @@ import { OperatorRegistrationForm } from '@/components/features/operators/Operat
 
 export const metadata: Metadata = {
   title: 'Operator Registration - Total Travel Solution',
-  description: 'Register as a transport operator and join our network. Start receiving airport transfer jobs and grow your business with Total Travel Solution.',
+  description: 'Register as a transport operator and join our network. Start receiving transfer jobs and grow your business with Total Travel Solution.',
   keywords: [
     'operator registration',
     'transport operator signup',
     'join transport network',
-    'airport transfer operator',
+    'transfer operator',
     'private hire registration',
   ],
 };
@@ -29,7 +29,7 @@ export default function OperatorRegisterPage() {
               Join Our Operator Network
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-600 sm:text-xl">
-              Register your transport business and start receiving airport transfer jobs across the UK
+              Register your transport business and start receiving transfer jobs across the UK
             </p>
           </div>
 
@@ -101,13 +101,13 @@ export default function OperatorRegisterPage() {
                 Contact Support
               </Link>
               <a
-                href="tel:+442012345678"
+                href="tel:+443301337044"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-white bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                +44 20 1234 5678
+                +44 330 133 7044
               </a>
             </div>
           </div>

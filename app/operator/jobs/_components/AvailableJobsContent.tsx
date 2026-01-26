@@ -17,8 +17,88 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { CountdownTimer } from '@/components/admin/jobs/CountdownTimer';
+import { useToast } from '@/components/ui/Toast';
+import { StopsIndicator } from '@/components/ui/StopsList';
 import { jobApi, bidApi } from '@/lib/api';
-import type { Job } from '@/lib/types';
+import { getContextualErrorMessage, extractErrorMessage } from '@/lib/utils/error-handler';
+import { getVehicleTypeLabel } from '@/lib/utils/vehicle-type';
+import type { Job, Booking, StopResponse } from '@/lib/types';
+
+/**
+ * Normalize booking from snake_case API response to camelCase
+ */
+function normalizeBooking(data: Record<string, unknown>): Booking {
+  return {
+    id: (data.id as string) || '',
+    bookingReference: (data.bookingReference ?? data.booking_reference ?? '') as string,
+    customerId: (data.customerId ?? data.customer_id ?? '') as string,
+    journeyType: (data.journeyType ?? data.journey_type ?? 'ONE_WAY') as Booking['journeyType'],
+    bookingGroupId: (data.bookingGroupId ?? data.booking_group_id ?? null) as string | null,
+    linkedBookingId: (data.linkedBookingId ?? data.linked_booking_id ?? null) as string | null,
+    status: (data.status ?? 'PENDING') as Booking['status'],
+    serviceType: (data.serviceType ?? data.service_type ?? 'POINT_TO_POINT') as Booking['serviceType'],
+    pickupAddress: (data.pickupAddress ?? data.pickup_address ?? '') as string,
+    pickupPostcode: (data.pickupPostcode ?? data.pickup_postcode ?? '') as string,
+    pickupLat: Number(data.pickupLat ?? data.pickup_lat ?? 0),
+    pickupLng: Number(data.pickupLng ?? data.pickup_lng ?? 0),
+    dropoffAddress: (data.dropoffAddress ?? data.dropoff_address ?? '') as string,
+    dropoffPostcode: (data.dropoffPostcode ?? data.dropoff_postcode ?? '') as string,
+    dropoffLat: Number(data.dropoffLat ?? data.dropoff_lat ?? 0),
+    dropoffLng: Number(data.dropoffLng ?? data.dropoff_lng ?? 0),
+    pickupDatetime: (data.pickupDatetime ?? data.pickup_datetime ?? '') as string,
+    passengerCount: Number(data.passengerCount ?? data.passenger_count ?? 1),
+    luggageCount: Number(data.luggageCount ?? data.luggage_count ?? 0),
+    vehicleType: (data.vehicleType ?? data.vehicle_type ?? 'SALOON') as Booking['vehicleType'],
+    flightNumber: (data.flightNumber ?? data.flight_number ?? null) as string | null,
+    specialRequirements: (data.specialRequirements ?? data.special_requirements ?? data.specialRequests ?? data.special_requests ?? null) as string | null,
+    distanceMiles: data.distanceMiles != null ? Number(data.distanceMiles) : (data.distance_miles != null ? Number(data.distance_miles) : null),
+    durationMinutes: data.durationMinutes != null ? Number(data.durationMinutes) : (data.duration_minutes != null ? Number(data.duration_minutes) : null),
+    customerName: (data.customerName ?? data.customer_name ?? null) as string | null,
+    customerEmail: (data.customerEmail ?? data.customer_email ?? null) as string | null,
+    customerPhone: (data.customerPhone ?? data.customer_phone ?? null) as string | null,
+    terminal: (data.terminal ?? null) as string | null,
+    hasMeetAndGreet: Boolean(data.hasMeetAndGreet ?? data.has_meet_and_greet ?? false),
+    childSeats: Number(data.childSeats ?? data.child_seats ?? 0),
+    boosterSeats: Number(data.boosterSeats ?? data.booster_seats ?? 0),
+    stops: (data.stops ?? []) as StopResponse[],
+    customerPrice: Number(data.customerPrice ?? data.customer_price ?? data.quotedPrice ?? data.quoted_price ?? 0),
+    createdAt: (data.createdAt ?? data.created_at ?? '') as string,
+    updatedAt: (data.updatedAt ?? data.updated_at ?? '') as string,
+  };
+}
+
+/**
+ * Normalize job from snake_case API response to camelCase
+ */
+function normalizeJob(data: Record<string, unknown>): Job {
+  const bookingData = data.booking as Record<string, unknown> | undefined;
+
+  return {
+    id: (data.id as string) || '',
+    bookingId: (data.bookingId ?? data.booking_id ?? '') as string,
+    status: (data.status ?? 'PENDING_BIDS') as Job['status'],
+    biddingWindowOpensAt: (data.biddingWindowOpensAt ?? data.bidding_window_opens_at ?? '') as string,
+    biddingWindowClosesAt: (data.biddingWindowClosesAt ?? data.bidding_window_closes_at ?? '') as string,
+    biddingWindowDurationHours: Number(data.biddingWindowDurationHours ?? data.bidding_window_duration_hours ?? 24),
+    winningBidId: (data.winningBidId ?? data.winning_bid_id ?? null) as string | null,
+    assignedOperatorId: (data.assignedOperatorId ?? data.assigned_operator_id ?? null) as string | null,
+    platformMargin: data.platformMargin != null ? Number(data.platformMargin) : (data.platform_margin != null ? Number(data.platform_margin) : null),
+    completedAt: (data.completedAt ?? data.completed_at ?? null) as string | null,
+    createdAt: (data.createdAt ?? data.created_at ?? '') as string,
+    updatedAt: (data.updatedAt ?? data.updated_at ?? '') as string,
+    booking: bookingData ? normalizeBooking(bookingData) : undefined,
+    bids: data.bids as Job['bids'],
+    driverDetails: (data.driverDetails ?? data.driver_details) as Job['driverDetails'],
+  };
+}
+
+/**
+ * Normalize an array of jobs
+ */
+function normalizeJobs(data: unknown[]): Job[] {
+  return data.map((item) => normalizeJob(item as Record<string, unknown>));
+}
 
 export default function AvailableJobsContent() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -27,15 +107,19 @@ export default function AvailableJobsContent() {
   const [bidAmounts, setBidAmounts] = useState<Record<string, string>>({});
   const [submittingBid, setSubmittingBid] = useState<string | null>(null);
   const [bidSuccess, setBidSuccess] = useState<string | null>(null);
+  const toast = useToast();
 
   const fetchJobs = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await jobApi.getOperatorAvailableJobs();
-      setJobs(data);
-    } catch (err) {
-      setError('Failed to load available jobs. Please try again.');
+      // Normalize snake_case API response to camelCase
+      const normalized = normalizeJobs(data as unknown[]);
+      setJobs(normalized);
+    } catch (err: unknown) {
+      const errorMessage = getContextualErrorMessage(err, 'fetch');
+      setError(errorMessage);
       console.error('Error fetching jobs:', err);
     } finally {
       setLoading(false);
@@ -49,11 +133,11 @@ export default function AvailableJobsContent() {
   const handleSubmitBid = async (jobId: string, customerPrice: number) => {
     const amount = bidAmounts[jobId];
     if (!amount || parseFloat(amount) <= 0) {
-      alert('Please enter a valid bid amount');
+      toast.warning('Please enter a valid bid amount');
       return;
     }
     if (parseFloat(amount) > customerPrice) {
-      alert('Bid amount cannot exceed the customer price');
+      toast.warning(`Your bid cannot exceed the maximum bid of £${customerPrice.toFixed(2)}`);
       return;
     }
 
@@ -62,11 +146,13 @@ export default function AvailableJobsContent() {
       await bidApi.submitBid({ jobId, bidAmount: amount });
       setBidSuccess(jobId);
       setBidAmounts((prev) => ({ ...prev, [jobId]: '' }));
+      toast.success('Bid submitted successfully!');
       // Refresh jobs to show updated bid status
       await fetchJobs();
       setTimeout(() => setBidSuccess(null), 3000);
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to submit bid');
+    } catch (err: unknown) {
+      const errorMessage = extractErrorMessage(err);
+      toast.error(errorMessage);
     } finally {
       setSubmittingBid(null);
     }
@@ -88,15 +174,6 @@ export default function AvailableJobsContent() {
     });
   };
 
-  const getTimeRemaining = (closesAt: string) => {
-    const now = new Date();
-    const closes = new Date(closesAt);
-    const diff = closes.getTime() - now.getTime();
-    if (diff <= 0) return 'Closed';
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
-  };
 
   if (loading) {
     return (
@@ -109,8 +186,13 @@ export default function AvailableJobsContent() {
   if (error) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-        <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-neutral-600">{error}</p>
+        <div className="rounded-full bg-error-100 p-4">
+          <AlertCircle className="h-8 w-8 text-error-600" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-neutral-900">Unable to Load Jobs</h2>
+          <p className="mt-1 text-neutral-600">{error}</p>
+        </div>
         <Button onClick={fetchJobs} variant="primary">
           <RefreshCw className="mr-2 h-4 w-4" />
           Try Again
@@ -126,7 +208,7 @@ export default function AvailableJobsContent() {
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">Available Jobs</h1>
           <p className="mt-1 text-neutral-600">
-            View and bid on available airport transfer jobs
+            View and bid on available transfer jobs
           </p>
         </div>
         <Button onClick={fetchJobs} variant="outline" size="sm">
@@ -167,12 +249,7 @@ export default function AvailableJobsContent() {
                       {booking.bookingReference}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-warning-500" />
-                    <span className="text-sm font-medium text-warning-600">
-                      {getTimeRemaining(job.biddingWindowClosesAt)} left
-                    </span>
-                  </div>
+                  <CountdownTimer endDate={job.biddingWindowClosesAt} />
                 </div>
 
                 {/* Journey Details */}
@@ -184,6 +261,11 @@ export default function AvailableJobsContent() {
                       <p className="text-sm font-medium text-neutral-900">{booking.pickupAddress}</p>
                     </div>
                   </div>
+                  {booking.stops && booking.stops.length > 0 && (
+                    <div className="ml-7 flex items-center gap-2">
+                      <StopsIndicator count={booking.stops.length} />
+                    </div>
+                  )}
                   <div className="flex items-start gap-3">
                     <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" />
                     <div>
@@ -207,13 +289,68 @@ export default function AvailableJobsContent() {
                     <Users className="h-4 w-4" />
                     {booking.passengerCount} passengers
                   </div>
-                  <StatusBadge variant="info">{booking.vehicleType}</StatusBadge>
+                  <div className="flex items-center gap-1.5 text-neutral-600">
+                    <Briefcase className="h-4 w-4" />
+                    {booking.luggageCount} luggage
+                  </div>
+                  <StatusBadge variant="info">{getVehicleTypeLabel(booking.vehicleType)}</StatusBadge>
+                </div>
+
+                {/* Additional Details */}
+                <div className="mb-4 space-y-2">
+                  {(booking.childSeats > 0 || booking.boosterSeats > 0) && (
+                    <div className="rounded-lg bg-warning-50 px-3 py-2">
+                      <p className="text-sm font-medium text-warning-700">
+                        ⚠️ Child Safety Requirements
+                      </p>
+                      <div className="mt-1 flex gap-4 text-xs text-warning-600">
+                        {booking.childSeats > 0 && <span>{booking.childSeats} child seat(s)</span>}
+                        {booking.boosterSeats > 0 && <span>{booking.boosterSeats} booster seat(s)</span>}
+                      </div>
+                    </div>
+                  )}
+
+                  {booking.terminal && (
+                    <div className="flex items-start gap-2 text-sm text-neutral-600">
+                      <Plane className="mt-0.5 h-4 w-4 text-primary-600" />
+                      <span><strong>Terminal:</strong> {booking.terminal}</span>
+                    </div>
+                  )}
+
+                  {booking.flightNumber && (
+                    <div className="flex items-start gap-2 text-sm text-neutral-600">
+                      <Plane className="mt-0.5 h-4 w-4 text-primary-600" />
+                      <span><strong>Flight:</strong> {booking.flightNumber}</span>
+                    </div>
+                  )}
+
+                  {booking.hasMeetAndGreet && (
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-full bg-accent-100 px-3 py-1 text-xs font-medium text-accent-700">
+                        Meet & Greet
+                      </span>
+                    </div>
+                  )}
+
+                  {(booking.distanceMiles || booking.durationMinutes) && (
+                    <div className="flex gap-4 text-xs text-neutral-500">
+                      {booking.distanceMiles && <span>Distance: {booking.distanceMiles} miles</span>}
+                      {booking.durationMinutes && <span>Duration: ~{booking.durationMinutes} min</span>}
+                    </div>
+                  )}
+
+                  {booking.specialRequirements && (
+                    <div className="rounded-lg bg-neutral-50 px-3 py-2">
+                      <p className="text-xs font-medium text-neutral-700">Special Requirements:</p>
+                      <p className="mt-1 text-xs text-neutral-600">{booking.specialRequirements}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Customer Price & Bidding */}
                 <div className="flex flex-col gap-4 border-t border-neutral-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-xs text-neutral-500">Customer Price (Max Bid)</p>
+                    <p className="text-xs text-neutral-500">Maximum Bid</p>
                     <p className="text-xl font-bold text-neutral-900">
                       £{customerPrice.toFixed(2)}
                     </p>

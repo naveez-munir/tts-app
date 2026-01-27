@@ -9,9 +9,9 @@ export function PrivacyContent() {
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-neutral-900 mb-4">1. Introduction</h2>
         <p className="text-neutral-700 leading-relaxed mb-4">
-          Total Travel Solution Group Limited ("we", "our", or "us") is committed to protecting your privacy. 
-          This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you 
-          use our airport transfer booking platform.
+          Total Travel Solution Group Limited ("we", "our", or "us") is committed to protecting your privacy.
+          This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you
+          use our travel booking platform.
         </p>
       </section>
 
@@ -130,7 +130,7 @@ export function PrivacyContent() {
           For privacy-related questions or to exercise your rights, contact us at:
         </p>
         <div className="bg-neutral-50 p-4 rounded-lg">
-          <p className="text-neutral-700"><strong>Email:</strong> privacy@totaltravelsolution.co.uk</p>
+          <p className="text-neutral-700"><strong>Email:</strong> customerservice@totaltravelsolution.com</p>
           <p className="text-neutral-700"><strong>Company:</strong> Total Travel Solution Group Limited</p>
           <p className="text-neutral-700"><strong>Company Number:</strong> 16910276</p>
         </div>

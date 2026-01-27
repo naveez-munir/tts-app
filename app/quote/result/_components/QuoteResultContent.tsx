@@ -7,12 +7,14 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { MapPin, Calendar, Users, Briefcase, Car, Plane, ArrowRight, CheckCircle } from 'lucide-react';
-import type { SingleJourneyQuote, ReturnJourneyQuote } from '@/lib/types/quote.types';
+import type { SingleJourneyQuote, ReturnJourneyQuote, StopPoint } from '@/lib/types/quote.types';
+import { getVehicleLabel } from '@/lib/hooks';
 
 interface QuoteData {
   journeyType: 'one-way' | 'return';
   pickup: { address: string; postcode: string | null; lat: number; lng: number };
   dropoff: { address: string; postcode: string | null; lat: number; lng: number };
+  stops?: StopPoint[];
   serviceType: string;
   pickupDatetime: string;
   returnDatetime?: string;
@@ -58,6 +60,8 @@ export function QuoteResultContent() {
   }, [router]);
 
   const handleProceedToBook = () => {
+    // Clear any previous booking retry count before navigating to checkout
+    sessionStorage.removeItem('bookingRetryCount');
     router.push('/checkout');
   };
 
@@ -81,16 +85,7 @@ export function QuoteResultContent() {
     return labels[type] || type;
   };
 
-  const getVehicleLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      SALOON: 'Saloon',
-      ESTATE: 'Estate',
-      MPV: 'MPV / People Carrier',
-      EXECUTIVE: 'Executive',
-      MINIBUS: 'Minibus',
-    };
-    return labels[type] || type;
-  };
+  // getVehicleLabel imported from lib/hooks
 
   if (loading) {
     return (

@@ -6,12 +6,17 @@ import { QuoteTrustIndicators } from '@/components/features/quote/QuoteTrustIndi
 import { WhyChooseUsSection } from '@/components/features/quote/WhyChooseUsSection';
 import { QUOTE_PAGE_DATA } from '@/lib/data/quote.data';
 import { getIcon } from '@/lib/utils/Icons';
+import { getVehicleCapacitiesServer, convertToVehicleTypeData } from '@/lib/api/vehicle-capacity.api';
 
 /**
  * Quote Page Content Component
  * Main content for the get quote page
+ * Server Component - fetches vehicle capacities at build/request time
  */
-export function QuotePageContent() {
+export async function QuotePageContent() {
+  // Fetch vehicle capacities server-side (cached by Next.js)
+  const capacities = await getVehicleCapacitiesServer();
+  const vehicleTypes = convertToVehicleTypeData(capacities);
   return (
     <>
       <Header />
@@ -29,7 +34,7 @@ export function QuotePageContent() {
           <div className="absolute bottom-0 left-0 h-[600px] w-[600px] translate-y-1/2 -translate-x-1/2 animate-pulse rounded-full bg-gradient-to-tr from-secondary-400/30 to-primary-500/20 blur-3xl" style={{ animationDuration: '4s', animationDelay: '2s' }} />
 
           <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-4xl text-center">
+            <div className="mx-auto max-w-7xl text-center">
               {/* Badge */}
               <div className="inline-flex items-center gap-2.5 rounded-full bg-white/10 px-4 py-2 backdrop-blur-md ring-1 ring-white/20">
                 <span className="relative flex h-2 w-2">
@@ -60,8 +65,8 @@ export function QuotePageContent() {
         {/* Quote Form Section */}
         <section id="quote-form" className="bg-white py-16 sm:py-20 lg:py-24">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-4xl">
-              <QuoteFormSection />
+            <div className="mx-auto max-w-7xl">
+              <QuoteFormSection vehicleTypes={vehicleTypes} />
             </div>
           </div>
         </section>
